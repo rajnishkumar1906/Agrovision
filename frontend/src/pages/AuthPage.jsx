@@ -1,0 +1,138 @@
+import React, { useState, useContext } from 'react';
+import { Leaf, AlertTriangle } from 'lucide-react';
+import { API_BASE_URL } from '../config';
+import useAuthStore from '../store/useAuthStore';
+import { LanguageContext } from '../App';
+
+const AuthPage = ({ type, onSuccess, onNavigate }) => {
+  const [formData, setFormData] = useState({ username: '', email: '', password: '' });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const setAuth = useAuthStore((state) => state.setAuth);
+  const { t } = useContext(LanguageContext);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+
+    if (formData.password.length < 6) {
+      setError('Password must be at least 6 characters long');
+      setLoading(false);
+      return;
+    }
+
+    const endpoint = type === 'login' ? '/api/auth/login' : '/api/auth/register';
+    
+    try {
+      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      });
+      
+      const data = await response.json();
+      
+      if (data.success || response.ok) {
+        if (type === 'login') {
+          setAuth(data.data.user, data.data.token);
+          onSuccess();
+        } else {
+          onNavigate('login');
+        }
+      } else {
+        setError(data.message || 'Authentication failed');
+      }
+    } catch (err) {
+      setError('Cannot connect to server. Is backend running?');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
+      <div className="bg-white w-full max-w-md p-8 rounded-3xl shadow-xl shadow-slate-200 border border-slate-100">
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-emerald-100 text-emerald-600 mb-4">
+            <Leaf className="fill-current" />
+          </div>
+          <h2 className="text-2xl font-bold text-slate-800">
+            {type === 'login' ? t('auth.loginTitle') : t('auth.registerTitle')}
+          </h2>
+          <p className="text-slate-500 text-sm mt-1">
+            {type === 'login' ? t('auth.loginSubtitle') : t('auth.registerSubtitle')}
+          </p>
+        </div>
+
+        {error && (
+          <div className="mb-6 p-3 bg-red-50 text-red-600 text-sm rounded-lg flex items-center gap-2 border border-red-100">
+            <AlertTriangle size={16} /> {error}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {type === 'register' && (
+            <div>
+              <label className="block text-xs font-bold text-slate-500 mb-1 ml-1">{t('auth.username')}</label>
+              <input 
+                type="text" 
+                required
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all"
+                placeholder="Farmer John"
+                value={formData.username}
+                onChange={(e) => setFormData({...formData, username: e.target.value})}
+              />
+            </div>
+          )}
+          <div>
+            <label className="block text-xs font-bold text-slate-500 mb-1 ml-1">{t('auth.email')}</label>
+            <input 
+              type="email" 
+              required
+              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all"
+              placeholder="john@example.com"
+              value={formData.email}
+              onChange={(e) => setFormData({...formData, email: e.target.value})}
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-bold text-slate-500 mb-1 ml-1">{t('auth.password')}</label>
+            <input 
+              type="password" 
+              required
+              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all"
+              placeholder="••••••••"
+              value={formData.password}
+              onChange={(e) => setFormData({...formData, password: e.target.value})}
+            />
+          </div>
+
+          <button 
+            type="submit" 
+            disabled={loading}
+            className="w-full py-4 bg-emerald-600 text-white rounded-xl font-bold text-lg shadow-xl shadow-emerald-200 hover:bg-emerald-700 active:scale-95 transition-all flex items-center justify-center gap-2"
+          >
+            {loading ? (
+              <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            ) : (
+              type === 'login' ? t('auth.signIn') : t('auth.createAccount')
+            )}
+          </button>
+        </form>
+
+        <div className="mt-6 text-center text-sm text-slate-500">
+          {type === 'login' ? t('auth.noAccount') : t('auth.haveAccount')}
+          <button 
+            onClick={() => onNavigate(type === 'login' ? 'register' : 'login')}
+            className="text-emerald-600 font-bold hover:underline ml-1"
+          >
+            {type === 'login' ? t('auth.signUp') : t('auth.logIn')}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default AuthPage;

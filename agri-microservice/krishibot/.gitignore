@@ -1,0 +1,128 @@
+# Python virtual environments
+venv/
+.venv/
+env/
+.env/
+ENV/
+env.bak/
+venv.bak/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.pyc
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+krishibot.env
+*.env
+
+# Logs
+*.log
+logs/
+log.txt
+logging_config.py
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+*.ipynb
+
+# Unit test / coverage
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.mypy_cache/
+.ruff_cache/
+
+# Uploads and temporary files
+uploads/
+temp/
+tmp/
+temp_audio/
+audio_output/
+temp_audio_files/
+output_audio/
+
+# Audio files (generated)
+*.wav
+*.mp3
+*.ogg
+*.flac
+
+# Models (if downloaded locally)
+models/
+*.bin
+*.safetensors
+*.msgpack
+*.onnx
+
+# Docker
+.dockerignore
+Dockerfile
+docker-compose*.yml
+
+# Package files
+dist/
+build/
+*.egg-info/
+*.egg
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Mac
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Requirements tracking
+requirements.installed
+
+# Redis dump
+dump.rdb
+
+# Testing
+test_output/
+test_results/
+
+# API keys and secrets
+secrets/
+*.key
+*.pem
+*.cert
+credentials.json
+
+# Speech recognition cache
+.cache/
+speech_cache/
+
+# HuggingFace cache
+.cache/huggingface/
+~/.cache/huggingface/
+
+# LangChain cache
+langchain_cache/
+
+# Service specific
+krishibot.lock
+*.pid

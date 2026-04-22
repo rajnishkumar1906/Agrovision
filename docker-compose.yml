@@ -1,0 +1,137 @@
+version: "3.9"
+
+# ─────────────────────────────────────────────
+# Shared network
+# ─────────────────────────────────────────────
+networks:
+  agro-net:
+    driver: bridge
+
+# ─────────────────────────────────────────────
+# Volumes
+# ─────────────────────────────────────────────
+volumes:
+  mongo-data:
+  redis-data:
+
+services:
+
+  # ── Infrastructure ────────────────────────
+  mongodb:
+    image: mongo:7
+    container_name: agro-mongo
+    restart: unless-stopped
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - agro-net
+    ports:
+      - "27017:27017"
+
+  redis:
+    image: redis:7-alpine
+    container_name: agro-redis
+    restart: unless-stopped
+    volumes:
+      - redis-data:/data
+    networks:
+      - agro-net
+    ports:
+      - "6379:6379"
+
+  # ── Microservices ─────────────────────────
+  gateway:
+    build:
+      context: ./agri-microservice/gateway
+    container_name: agro-gateway
+    restart: unless-stopped
+    environment:
+      REDIS_ENABLED: "false"
+      AUTH_SERVICE_URL: http://auth:3001
+      HISTORY_SERVICE_URL: http://history:3002
+      CROPREC_SERVICE_URL: http://croprec:8001
+      DISEASE_SERVICE_URL: http://disease:8002
+      KRISHIBOT_SERVICE_URL: http://krishibot:8003
+    ports:
+      - "3000:3000"
+    depends_on:
+      - auth
+      - history
+      - croprec
+      - disease
+      - krishibot
+    networks:
+      - agro-net
+
+  auth:
+    build:
+      context: ./agri-microservice/auth
+    container_name: agro-auth
+    restart: unless-stopped
+    environment:
+      MONGO_URI: mongodb://mongodb:27017/agro-auth
+    ports:
+      - "3001:3001"
+    depends_on:
+      - mongodb
+    networks:
+      - agro-net
+
+  history:
+    build:
+      context: ./agri-microservice/history
+    container_name: agro-history
+    restart: unless-stopped
+    environment:
+      MONGO_URI: mongodb://mongodb:27017/agro-history
+    ports:
+      - "3002:3002"
+    depends_on:
+      - mongodb
+    networks:
+      - agro-net
+
+  croprec:
+    build:
+      context: ./agri-microservice/croprec
+    container_name: agro-croprec
+    restart: unless-stopped
+    ports:
+      - "8001:8001"
+    networks:
+      - agro-net
+
+  disease:
+    build:
+      context: ./agri-microservice/disease
+    container_name: agro-disease
+    restart: unless-stopped
+    ports:
+      - "8002:8002"
+    networks:
+      - agro-net
+
+  krishibot:
+    build:
+      context: ./agri-microservice/krishibot
+    container_name: agro-krishibot
+    restart: unless-stopped
+    ports:
+      - "8003:8003"
+    networks:
+      - agro-net
+
+  # ── Frontend ──────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+    container_name: agro-frontend
+    restart: unless-stopped
+    environment:
+      VITE_API_URL: http://localhost:3000
+    ports:
+      - "5173:5173"
+    depends_on:
+      - gateway
+    networks:
+      - agro-net

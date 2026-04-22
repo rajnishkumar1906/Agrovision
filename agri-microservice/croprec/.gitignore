@@ -1,0 +1,91 @@
+# Python virtual environments
+venv/
+.venv/
+env/
+.env/
+ENV/
+env.bak/
+venv.bak/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+logs/
+log.txt
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+*.ipynb
+
+# Unit test / coverage
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.mypy_cache/
+.ruff_cache/
+
+# Uploads
+uploads/
+temp/
+tmp/
+temp_audio/
+
+# Data files (if any)
+*.csv
+*.xlsx
+data/raw/
+data/processed/
+
+# Docker
+.dockerignore
+Dockerfile
+
+# Package files (if generating)
+dist/
+build/
+*.egg-info/
+*.egg
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Mac
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Requirements tracking
+requirements.installed
+
+# Redis dump
+dump.rdb
+
+# Testing
+test_output/
+test_results/

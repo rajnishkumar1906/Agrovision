@@ -1,0 +1,22 @@
+# Ignore everything
+
+# Allow agri-microservice and frontend
+!agri-microservice/
+!frontend/
+
+# Allow root README and .gitignore
+!README.md
+!.gitignore
+
+# Common ignores within the allowed directories
+**/node_modules/
+**/.env
+**/dist/
+**/build/
+**/__pycache__/
+**/*.py[cod]
+**/venv/
+**/.venv/
+**/.vscode/
+**/.idea/
+**.DS_Store

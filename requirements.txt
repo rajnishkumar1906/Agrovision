@@ -1,0 +1,42 @@
+# ============================================
+# AgroVision - Combined Requirements for Python 3.11
+# Shared across: CropRec, Disease, KrishiBot
+# ============================================
+
+# Web Framework (Common)
+fastapi
+uvicorn
+pydantic
+python-multipart
+
+# Data Processing (CropRec)
+numpy
+pandas
+scikit-learn
+
+# Image Processing (Disease)
+pillow
+
+# ML/DL Frameworks (CropRec + Disease + KrishiBot)
+tensorflow
+torch
+transformers
+
+# KrishiBot - Chat & Voice
+sentence-transformers
+faiss-cpu
+langchain
+langchain-community
+langchain-huggingface
+langchain-core
+google-genai
+
+# KrishiBot - Audio Processing
+gtts
+pydub
+librosa
+
+# KrishiBot - Utilities
+tqdm
+watchfiles
+python-dotenv
