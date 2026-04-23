@@ -1,4 +1,4 @@
-Here's a comprehensive **README.md** for your AgroVision project:
+Here's the updated **README.md** without PS1 script info, focusing on virtual environment and Python 3.11:
 
 ## **README.md**
 
@@ -18,7 +18,6 @@ AgroVision is a comprehensive AI-powered platform for farmers, offering crop rec
 - [API Endpoints](#api-endpoints)
 - [Environment Variables](#environment-variables)
 - [Troubleshooting](#troubleshooting)
-- [Contributing](#contributing)
 
 ## ✨ Features
 
@@ -100,27 +99,26 @@ Agro-Vision/
 │       └── main.py
 ├── frontend/                 # React Frontend
 ├── requirements.txt          # Combined Python dependencies
-└── start-services.ps1       # Service launcher script
+└── .gitignore               # Git ignore file
 ```
 
 ## 📋 Prerequisites
 
 ### Required Software
 - **Node.js** (v18 or higher)
-- **Python 3.11**
+- **Python 3.11** (Required - other versions may cause compatibility issues)
 - **MongoDB** (v8.0 or higher)
 - **Git**
 
 ### Optional
-- **Windows Terminal** (for better service management)
 - **Redis** (for caching - can be disabled)
 
 ## 🚀 Installation
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/yourusername/Agro-Vision.git
-cd Agro-Vision
+git clone https://github.com/rajnishkumar1906/Agrovision.git
+cd Agrovision
 ```
 
 ### 2. Install Node.js Dependencies
@@ -132,24 +130,43 @@ cd ../history && npm install
 cd ../../frontend && npm install
 ```
 
-### 3. Setup Python Virtual Environment
+### 3. Setup Python Virtual Environment (Python 3.11)
+
+**Important:** Python 3.11 is required for compatibility with all dependencies.
+
 ```powershell
-# Create shared virtual environment on D drive
+# Create shared virtual environment with Python 3.11
 & "C:\Users\YourName\AppData\Local\Programs\Python\Python311\python.exe" -m venv D:\agroenv
 
 # Activate virtual environment
 D:\agroenv\Scripts\Activate.ps1
 
+# Upgrade pip and setuptools
+python -m pip install --upgrade pip setuptools wheel
+
 # Install all Python dependencies
 pip install -r requirements.txt
 ```
 
+**For Linux/Mac:**
+```bash
+# Create virtual environment
+python3.11 -m venv ~/agroenv
+
+# Activate virtual environment
+source ~/agroenv/bin/activate
+
+# Install dependencies
+pip install -r requirements.txt
+```
+
 ### 4. Setup MongoDB
+
 ```powershell
-# Create data directory
+# Create data directory on D drive
 mkdir D:\data\db -Force
 
-# Start MongoDB (adjust version path)
+# Start MongoDB (adjust version path as per your installation)
 & "C:\Program Files\MongoDB\Server\8.0\bin\mongod.exe" --dbpath "D:\data\db"
 ```
 
@@ -192,59 +209,53 @@ MODEL_NAME=gemini-2.5-flash-lite
 
 ## 🏃 Running the Services
 
-### Option 1: Using PowerShell Script (Windows)
-```powershell
-# Run as Administrator
-.\start-services.ps1
-```
+**Important:** Open each service in a separate terminal.
 
-### Option 2: Manual Start (Individual Terminals)
-
-#### Terminal 1 - MongoDB
+### Terminal 1 - MongoDB
 ```powershell
 & "C:\Program Files\MongoDB\Server\8.0\bin\mongod.exe" --dbpath "D:\data\db"
 ```
 
-#### Terminal 2 - Auth Service
+### Terminal 2 - Auth Service
 ```powershell
 cd agri-microservice/auth
 npm run dev
 ```
 
-#### Terminal 3 - History Service
+### Terminal 3 - History Service
 ```powershell
 cd agri-microservice/history
 npm run dev
 ```
 
-#### Terminal 4 - Gateway
+### Terminal 4 - Gateway
 ```powershell
 cd agri-microservice/gateway
 npm run server
 ```
 
-#### Terminal 5 - CropRec Service
+### Terminal 5 - CropRec Service
 ```powershell
 cd agri-microservice/croprec
-D:\agroenv\Scripts\Activate.ps1
+D:\agroenv\Scripts\Activate.ps1  # Activate shared venv
 python main.py
 ```
 
-#### Terminal 6 - Disease Service
+### Terminal 6 - Disease Service
 ```powershell
 cd agri-microservice/disease
-D:\agroenv\Scripts\Activate.ps1
+D:\agroenv\Scripts\Activate.ps1  # Activate shared venv
 python main.py
 ```
 
-#### Terminal 7 - KrishiBot Service
+### Terminal 7 - KrishiBot Service
 ```powershell
 cd agri-microservice/krishibot
-D:\agroenv\Scripts\Activate.ps1
+D:\agroenv\Scripts\Activate.ps1  # Activate shared venv
 python run.py
 ```
 
-#### Terminal 8 - Frontend
+### Terminal 8 - Frontend
 ```powershell
 cd frontend
 npm run dev
@@ -324,32 +335,40 @@ netstat -ano | findstr :8000
 taskkill /PID 12345 /F
 ```
 
-### Python Package Issues
+### Python Virtual Environment Issues
 ```powershell
-# Reinstall requirements
+# Verify Python version (must be 3.11)
+python --version
+
+# Recreate virtual environment if needed
+deactivate
+Remove-Item -Path "D:\agroenv" -Recurse -Force
+& "C:\Users\YourName\AppData\Local\Programs\Python\Python311\python.exe" -m venv D:\agroenv
 D:\agroenv\Scripts\Activate.ps1
-pip install --upgrade pip setuptools wheel
-pip install -r requirements.txt --force-reinstall
+pip install -r requirements.txt
 ```
 
 ### Model Loading Warnings
 The scikit-learn version warnings are safe to ignore. Models will still work.
 
-## 🤝 Contributing
+### Python Package Conflicts
+```powershell
+# Reinstall all dependencies
+D:\agroenv\Scripts\Activate.ps1
+pip install --upgrade pip setuptools wheel
+pip install -r requirements.txt --force-reinstall
+```
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+## 📝 Notes
 
-## 📝 License
+- **Python 3.11 is mandatory** - Other versions may cause compatibility issues with TensorFlow and other dependencies
+- All Python services share a single virtual environment (`D:\agroenv`)
+- MongoDB data is stored on D drive to save C drive space
+- Make sure to set up your API keys in `krishibot.env` for KrishiBot to work
 
-This project is licensed under the MIT License.
+## 👥 Author
 
-## 👥 Authors
-
-- **Rajnish Kumar** - *Initial work*
+**Rajnish Kumar**
 
 ## 🙏 Acknowledgments
 
@@ -357,16 +376,14 @@ This project is licensed under the MIT License.
 - HuggingFace for transformers
 - Open-Meteo for weather data API
 
-## 📞 Support
-
-For issues or questions, please:
-1. Check the [Troubleshooting](#troubleshooting) section
-2. Open an issue on GitHub
-3. Contact the development team
-
 ---
 
 **Made with ❤️ for Farmers** 🌾
 ```
 
-This README provides a complete overview of your project including setup, configuration, and troubleshooting! 📚
+This README focuses on:
+- ✅ Python 3.11 requirement
+- ✅ Single shared virtual environment (`D:\agroenv`)
+- ✅ Manual service startup (no PS1 script)
+- ✅ All configuration details
+- ✅ Troubleshooting for virtual environment issues
