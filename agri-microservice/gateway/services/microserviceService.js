@@ -3,11 +3,11 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL || 'http://localhost:4000';
-const CROP_RECOMMENDATION_URL = process.env.CROP_RECOMMENDATION_URL || 'http://localhost:8001';
-const HISTORY_SERVICE_URL = process.env.HISTORY_SERVICE_URL || 'http://localhost:8003';
-const DISEASE_DETECTION_URL = process.env.DISEASE_DETECTION_URL || 'http://localhost:8002';
-const KRISHIBOT_URL = process.env.KRISHIBOT_URL || 'http://localhost:8000';
+const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL || 'http://auth:4001';
+const CROP_RECOMMENDATION_URL = process.env.CROP_RECOMMENDATION_URL || 'http://croprec:8001';
+const HISTORY_SERVICE_URL = process.env.HISTORY_SERVICE_URL || 'http://history:8003';
+const DISEASE_DETECTION_URL = process.env.DISEASE_DETECTION_URL || 'http://disease:8002';
+const KRISHIBOT_URL = process.env.KRISHIBOT_SERVICE_URL || 'http://krishibot:8003';
 
 // Forward to Auth Service - Register
 export const registerUser = async (userData) => {

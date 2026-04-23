@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { History, Camera, Sprout } from 'lucide-react';
+import { History, Camera, Sprout, MessageCircle } from 'lucide-react';
 import { API_BASE_URL } from '../../config';
 import useAuthStore from '../../store/useAuthStore';
 import { LanguageContext } from '../../App';
@@ -31,6 +31,38 @@ const HistoryModule = () => {
 
   if (loading) return <div className="p-8 text-center text-slate-400">{t('dashboard.noActivity')}...</div>;
 
+  // Helper to get display text based on action
+  const getDisplayText = (item) => {
+    if (item.action === 'DISEASE_DETECTION') {
+      return `${t('disease.result')}: ${item.details?.result?.disease || 'Unknown'}`;
+    }
+    if (item.action === 'CROP_RECOMMENDATION') {
+      return `${t('crop.recommendation')}: ${item.details?.result?.recommended_crop || 'Unknown'}`;
+    }
+    if (item.action === 'CHATBOT_QUERY') {
+      const query = item.details?.query || 'No query';
+      const answer = item.details?.result?.answer || item.details?.result?.response || 'No response';
+      return `${query}: ${answer.substring(0, 100)}${answer.length > 100 ? '...' : ''}`;
+    }
+    return t('dashboard.noActivity');
+  };
+
+  // Helper to get icon based on action
+  const getIcon = (action) => {
+    if (action === 'DISEASE_DETECTION') return <Camera size={16} className="text-slate-400" />;
+    if (action === 'CROP_RECOMMENDATION') return <Sprout size={16} className="text-slate-400" />;
+    if (action === 'CHATBOT_QUERY') return <MessageCircle size={16} className="text-slate-400" />;
+    return <History size={16} className="text-slate-400" />;
+  };
+
+  // Helper to get badge label
+  const getBadgeLabel = (action) => {
+    if (action === 'DISEASE_DETECTION') return t('nav.diseaseDetect');
+    if (action === 'CROP_RECOMMENDATION') return t('nav.cropGuide');
+    if (action === 'CHATBOT_QUERY') return 'Chatbot';
+    return action;
+  };
+
   return (
     <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm h-full overflow-hidden flex flex-col">
       <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2 mb-6">
@@ -46,18 +78,18 @@ const HistoryModule = () => {
             <div key={item._id} className="p-4 rounded-xl border border-slate-100 hover:bg-slate-50 transition-colors">
               <div className="flex justify-between items-start mb-2">
                 <span className={`px-2 py-1 rounded text-xs font-bold ${
-                  item.action === 'DISEASE_DETECTION' ? 'bg-emerald-100 text-emerald-700' : 'bg-emerald-100 text-emerald-700'
+                  item.action === 'DISEASE_DETECTION' || item.action === 'CROP_RECOMMENDATION' || item.action === 'CHATBOT_QUERY'
+                    ? 'bg-emerald-100 text-emerald-700'
+                    : 'bg-blue-100 text-blue-700'
                 }`}>
-                  {item.action === 'DISEASE_DETECTION' ? t('nav.diseaseDetect') : t('nav.cropGuide')}
+                  {getBadgeLabel(item.action)}
                 </span>
                 <span className="text-xs text-slate-400">{new Date(item.timestamp).toLocaleDateString()}</span>
               </div>
               <div className="flex items-center gap-3">
-                {item.action === 'DISEASE_DETECTION' ? <Camera size={16} className="text-slate-400" /> : <Sprout size={16} className="text-slate-400" />}
+                {getIcon(item.action)}
                 <p className="font-semibold text-slate-700 text-sm">
-                  {item.action === 'DISEASE_DETECTION' 
-                    ? `${t('disease.result')}: ${item.details?.result?.disease || 'Unknown'}` 
-                    : `${t('crop.recommendation')}: ${item.details?.result?.recommended_crop || 'Unknown'}`}
+                  {getDisplayText(item)}
                 </p>
               </div>
             </div>

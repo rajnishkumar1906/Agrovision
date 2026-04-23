@@ -8,7 +8,7 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 8003;
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://mongo:27017/agri_history';
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://mongodb:27017/agro-history';
 
 // Middleware
 app.use(cors());
