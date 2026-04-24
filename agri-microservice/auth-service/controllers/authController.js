@@ -1,5 +1,5 @@
 import User from '../models/User.js';
-import { generateToken, verifyToken } from '../utils/tokenUtils.js';
+import {generatePasetoToken, verifyPasetoToken} from "../utils/pasetoTokenUtils.js";
 
 // Register user
 export const register = async (req, res) => {
@@ -32,8 +32,8 @@ export const register = async (req, res) => {
       password,
     });
 
-    // Generate token
-    const token = generateToken(user._id);
+    // Utilizing paseto for token generation
+    const token = generatePasetoToken(user._id);
 
     return res.status(201).json({
       success: true,
@@ -89,7 +89,7 @@ export const login = async (req, res) => {
     }
 
     // Generate token
-    const token = generateToken(user._id);
+    const token = generatePasetoToken(user._id);
 
     return res.status(200).json({
       success: true,
@@ -125,7 +125,7 @@ export const verify = (req, res) => {
       });
     }
 
-    const { valid, decoded, error } = verifyToken(token);
+    const { valid, decoded, error } = verifyPasetoToken(token);
 
     if (valid) {
       return res.status(200).json({
