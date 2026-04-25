@@ -1,5 +1,5 @@
 import User from '../models/User.js';
-import {generatePasetoToken, verifyPasetoToken} from "../utils/pasetoTokenUtils.js";
+import { generatePasetoToken, verifyPasetoToken } from "../utils/pasetoTokenUtils.js";
 
 // Register user
 export const register = async (req, res) => {
@@ -7,7 +7,6 @@ export const register = async (req, res) => {
     const { username, name, email, password } = req.body;
     const finalName = name || username;
 
-    // Validation
     console.log('Register request body:', req.body);
     if (!finalName || !email || !password) {
       return res.status(400).json({
@@ -16,7 +15,6 @@ export const register = async (req, res) => {
       });
     }
 
-    // Check if user already exists
     const userExists = await User.findOne({ email });
     if (userExists) {
       return res.status(400).json({
@@ -25,15 +23,14 @@ export const register = async (req, res) => {
       });
     }
 
-    // Create user
     const user = await User.create({
       name: finalName,
       email,
       password,
     });
 
-    // Utilizing paseto for token generation
-    const token = generatePasetoToken(user._id);
+    // Wait for the token to be generated
+    const token = await generatePasetoToken(user._id.toString()); // ensure string
 
     return res.status(201).json({
       success: true,
@@ -43,7 +40,7 @@ export const register = async (req, res) => {
       user: {
         id: user._id,
         name: user.name,
-        username: user.name, // Support frontend username field
+        username: user.name,
         email: user.email,
       },
     });
@@ -62,7 +59,6 @@ export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Validation
     if (!email || !password) {
       return res.status(400).json({
         success: false,
@@ -70,7 +66,6 @@ export const login = async (req, res) => {
       });
     }
 
-    // Find user and include password field
     const user = await User.findOne({ email }).select('+password');
     if (!user) {
       return res.status(401).json({
@@ -79,7 +74,6 @@ export const login = async (req, res) => {
       });
     }
 
-    // Check password
     const isPasswordMatched = await user.matchPassword(password);
     if (!isPasswordMatched) {
       return res.status(401).json({
@@ -88,8 +82,8 @@ export const login = async (req, res) => {
       });
     }
 
-    // Generate token
-    const token = generatePasetoToken(user._id);
+    // Wait for the token
+    const token = await generatePasetoToken(user._id.toString());
 
     return res.status(200).json({
       success: true,
@@ -99,7 +93,7 @@ export const login = async (req, res) => {
       user: {
         id: user._id,
         name: user.name,
-        username: user.name, // Support frontend username field
+        username: user.name,
         email: user.email,
       },
     });
@@ -113,8 +107,8 @@ export const login = async (req, res) => {
   }
 };
 
-// Verify token
-export const verify = (req, res) => {
+// Verify token - note: verifyPasetoToken is async, need await
+export const verify = async (req, res) => {
   try {
     const { token } = req.body;
 
@@ -125,7 +119,7 @@ export const verify = (req, res) => {
       });
     }
 
-    const { valid, decoded, error } = verifyPasetoToken(token);
+    const { valid, decoded, error } = await verifyPasetoToken(token);
 
     if (valid) {
       return res.status(200).json({

@@ -1,6 +1,6 @@
-import jwt from 'jsonwebtoken';
+import { verifyPasetoToken } from '../utils/pasetoTokenUtils.js';
 
-const jwtVerifyMiddleware = (req, res, next) => {
+const jwtVerifyMiddleware = async (req, res, next) => {
   if (req.path === '/' || req.path === '/health') {
     return next();
   }
@@ -16,11 +16,17 @@ const jwtVerifyMiddleware = (req, res, next) => {
   const token = authHeader.substring(7);
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key-change-in-production');
-    req.user = decoded;
+    const { valid, decoded, error } = await verifyPasetoToken(token);
+    if (!valid) {
+      return res.status(401).json({
+        success: false,
+        message: error || 'Invalid or expired token',
+      });
+    }
+    req.user = { userId: decoded.userId };
     next();
   } catch (error) {
-    console.error('JWT Verification Error:', error.message);
+    console.error('PASETO Verification Error:', error.message);
     return res.status(401).json({
       success: false,
       message: 'Invalid or expired token',

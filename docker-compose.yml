@@ -37,6 +37,8 @@ services:
       context: ./agri-microservice/gateway
     container_name: agro-gateway
     restart: unless-stopped
+    env_file:
+      - ./.env                         # loads PASETO_SECRET_KEY, etc.
     environment:
       REDIS_ENABLED: "false"
       PORT: 5001
@@ -61,6 +63,8 @@ services:
       context: ./agri-microservice/auth-service
     container_name: agro-auth
     restart: unless-stopped
+    env_file:
+      - ./.env                         # loads PASETO_SECRET_KEY, PASETO_EXPIRE
     environment:
       MONGO_URI: mongodb://mongodb:27017/agro-auth
       PORT: 4001
@@ -112,7 +116,7 @@ services:
     container_name: agro-krishibot
     restart: unless-stopped
     env_file:
-      - ./agri-microservice/krishibot/krishibot.env   
+      - ./agri-microservice/krishibot/krishibot.env
     ports:
       - "8003:8003"
     networks:
