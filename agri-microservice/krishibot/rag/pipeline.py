@@ -10,8 +10,8 @@ class RAGPipeline:
         self.generator = generator
         logging.info("RAG Pipeline initialized")
 
-    def run(self, query: str, k: int = 3, include_confidence: bool = False) -> Dict[str, Any]:
-        """Run RAG pipeline with optional confidence scoring"""
+    def run(self, query: str, k: int = 3, include_confidence: bool = False, preferred_language: str = "en", gender: str = "male") -> Dict[str, Any]:
+        """Run RAG pipeline with optional confidence scoring and language/gender preference"""
         
         if include_confidence:
             # Get documents with scores
@@ -25,7 +25,7 @@ class RAGPipeline:
             avg_confidence = None
         
         context = "\n\n".join([doc.page_content for doc in docs])
-        answer = self.generator.generate(context, query)
+        answer = self.generator.generate(context, query, preferred_language=preferred_language, gender=gender)
         
         result = {
             "answer": answer,

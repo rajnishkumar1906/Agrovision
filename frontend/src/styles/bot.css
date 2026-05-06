@@ -8,40 +8,42 @@
 }
 
 .krishibot {
-  --primary-green: #2e7d32;
-  --primary-dark: #1b5e20;
-  --primary-light: #4caf50;
-  --accent-orange: #ffa000;
-  --accent-dark: #ff8f00;
-  --text-dark: #1f2937;
-  --text-gray: #6b7280;
-  --glass-white: rgba(255, 255, 255, 0.25);
-  --glass-dark: rgba(0, 0, 0, 0.2);
-  --glass-border: rgba(255, 255, 255, 0.3);
-  --shadow-glass: 0 8px 32px 0 rgba(31, 38, 135, 0.2);
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  --primary-green: #059669;
+  --primary-dark: #064e3b;
+  --primary-light: #34d399;
+  --accent-orange: #f59e0b;
+  --accent-dark: #b45309;
+  --text-dark: #0f172a;
+  --text-gray: #64748b;
+  --glass-white: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.5);
+  --shadow-glass: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
+  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 12px -2px rgba(0, 0, 0, 0.12);
+  --shadow-lg: 0 12px 24px -4px rgba(0, 0, 0, 0.15);
 
-  font-family: "Inter", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
   height: 100%;
   position: relative;
   overflow: hidden;
 }
 
-/* Background overlay (use gradient fallback; original referenced /static/*.png) */
-.krishibot .bg-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: radial-gradient(1200px 600px at 20% 10%, rgba(76, 175, 80, 0.35), transparent 60%),
-    radial-gradient(900px 600px at 80% 30%, rgba(255, 160, 0, 0.28), transparent 55%),
-    linear-gradient(135deg, rgba(6, 95, 70, 0.9), rgba(15, 23, 42, 0.92));
-  filter: blur(2px) brightness(0.85);
-  z-index: 0;
+.krishibot.floating {
+  position: fixed;
+  bottom: 100px;
+  right: 2rem;
+  width: 400px;
+  height: 600px;
+  max-height: 80vh;
+  z-index: 1000;
+  border-radius: 24px;
+  box-shadow: var(--shadow-lg);
+  animation: krishibot-popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes krishibot-popIn {
+  from { opacity: 0; transform: scale(0.9) translateY(20px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
 }
 
 .krishibot .app-container {
@@ -50,23 +52,22 @@
   height: 100%;
   display: flex;
   flex-direction: column;
-  background: rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-radius: 16px;
+  background: var(--glass-white);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-radius: inherit;
   border: 1px solid var(--glass-border);
   box-shadow: var(--shadow-glass);
   overflow: hidden;
 }
 
 .krishibot .header {
-  background: rgba(46, 125, 50, 1);
-  border-bottom: 1px solid var(--glass-border);
+  background: linear-gradient(135deg, var(--primary-dark), var(--primary-green));
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   color: white;
-  padding: 1rem 1.5rem;
+  padding: 1.25rem 1.5rem;
   box-shadow: var(--shadow-md);
-  position: sticky;
-  top: 0;
+  position: relative;
   z-index: 10;
 }
 
@@ -79,100 +80,113 @@
 .krishibot .logo-section {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
 }
 
 .krishibot .logo-icon {
-  font-size: 2rem;
-  animation: krishibot-bounce 2s infinite;
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.1);
+  animation: krishibot-float 3s ease-in-out infinite;
 }
 
-@keyframes krishibot-bounce {
+@keyframes krishibot-float {
   0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-5px); }
+  50% { transform: translateY(-4px); }
 }
 
 .krishibot .logo-text h1 {
-  font-size: 1.5rem;
-  font-weight: 700;
+  font-size: 1.25rem;
+  font-weight: 800;
   margin: 0;
-  text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+  letter-spacing: -0.025em;
 }
 
 .krishibot .logo-text p {
-  font-size: 0.75rem;
-  opacity: 0.9;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.8;
   margin: 0;
 }
 
 .krishibot .action-buttons {
   display: flex;
-  gap: 12px;
+  gap: 8px;
 }
 
 .krishibot .action-btn {
-  background: rgba(255, 255, 255, 0.25);
-  border: 1px solid var(--glass-border);
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
   cursor: pointer;
-  font-size: 1.4rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
   color: white;
-  text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
 }
 
 .krishibot .action-btn:hover {
-  background: rgba(255, 255, 255, 0.4);
-  transform: scale(1.05);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
 }
 
-.krishibot .action-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
-}
-
-.krishibot .mic-btn.is-listening {
-  background: rgba(244, 67, 54, 0.8);
-  animation: krishibot-pulse 1.4s infinite;
-}
-
-@keyframes krishibot-pulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.08); }
+.krishibot .action-btn.active {
+  background: var(--primary-light);
+  color: var(--primary-dark);
+  border-color: transparent;
 }
 
 .krishibot .chat-container {
-  background: rgba(250, 250, 250, 0.08);
+  background: #f8fafc;
   flex: 1;
-  overflow-y: auto;
+  overflow-y: hidden;
   position: relative;
 }
 
 .krishibot .messages-wrapper {
   padding: 1.5rem;
   height: 100%;
+  overflow-y: auto;
+  scroll-behavior: smooth;
+}
+
+/* Custom Scrollbar */
+.krishibot .messages-wrapper::-webkit-scrollbar {
+  width: 6px;
+}
+.krishibot .messages-wrapper::-webkit-scrollbar-track {
+  background: transparent;
+}
+.krishibot .messages-wrapper::-webkit-scrollbar-thumb {
+  background: #e2e8f0;
+  border-radius: 10px;
 }
 
 .krishibot .messages {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 1.25rem;
 }
 
 .krishibot .message {
   display: flex;
-  animation: krishibot-slideIn 0.3s ease;
+  width: 100%;
+  animation: krishibot-fadeInUp 0.4s ease-out;
 }
 
-@keyframes krishibot-slideIn {
-  from { opacity: 0; transform: translateY(20px); }
+@keyframes krishibot-fadeInUp {
+  from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
@@ -181,47 +195,144 @@
 
 .krishibot .message-bubble {
   display: flex;
-  gap: 12px;
-  align-items: flex-start;
-  max-width: 75%;
+  gap: 10px;
+  max-width: 85%;
 }
 
 .krishibot .message.user .message-bubble { flex-direction: row-reverse; }
 
 .krishibot .message-icon {
-  width: 32px;
-  height: 32px;
-  background: rgba(46, 125, 50, 0.8);
-  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1rem;
+  font-size: 0.9rem;
   flex-shrink: 0;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  margin-top: 4px;
 }
 
-.krishibot .message.user .message-icon { background: rgba(255, 160, 0, 0.8); }
+.krishibot .message.bot .message-icon { background: var(--primary-green); color: white; }
+.krishibot .message.user .message-icon { background: var(--accent-orange); color: white; }
 
 .krishibot .message-content {
-  background: white;
-  padding: 0.8rem 1.2rem;
-  border-radius: 18px;
-  color: var(--text-dark);
-  font-size: 0.95rem;
-  line-height: 1.5;
-  box-shadow: var(--shadow-sm);
+  padding: 0.75rem 1rem;
+  border-radius: 16px;
+  font-size: 0.925rem;
+  line-height: 1.6;
   position: relative;
 }
 
 .krishibot .message.bot .message-content {
-  border-top-left-radius: 4px;
   background: white;
+  color: var(--text-dark);
+  border-bottom-left-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .krishibot .message.user .message-content {
-  border-top-right-radius: 4px;
-  background: #e8f5e9;
+  background: var(--primary-green);
+  color: white;
+  border-bottom-right-radius: 4px;
+  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.2);
+}
+
+.krishibot .input-container {
+  padding: 1.25rem;
+  background: white;
+  border-top: 1px solid #f1f5f9;
+}
+
+.krishibot .input-wrapper {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  background: #f1f5f9;
+  padding: 6px;
+  border-radius: 16px;
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.krishibot .input-wrapper:focus-within {
+  background: white;
+  border-color: var(--primary-green);
+  box-shadow: 0 0 0 4px rgba(5, 150, 105, 0.1);
+}
+
+.krishibot .question-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  padding: 8px 12px;
+  font-size: 0.95rem;
+  color: var(--text-dark);
+  outline: none;
+  font-family: inherit;
+}
+
+.krishibot .send-btn {
+  background: var(--primary-green);
+  color: white;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  transition: all 0.2s ease;
+}
+
+.krishibot .send-btn:hover:not(:disabled) {
+  background: var(--primary-dark);
+  transform: scale(1.02);
+}
+
+.krishibot .send-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.krishibot .send-btn span {
+  display: none;
+}
+
+@media (min-width: 640px) {
+  .krishibot .send-btn span { display: inline; }
+}
+
+/* Typing Indicator */
+.krishibot .typing-dots {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 4px;
+}
+
+.krishibot .typing-dots span {
+  width: 6px;
+  height: 6px;
+  background: var(--primary-green);
+  border-radius: 50%;
+  animation: krishibot-typing 1.4s infinite;
+  opacity: 0.4;
+}
+
+.krishibot .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+.krishibot .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes krishibot-typing {
+  0%, 100% { transform: translateY(0); opacity: 0.4; }
+  50% { transform: translateY(-4px); opacity: 1; }
+}
+
+.krishibot .typing-text {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-gray);
 }
 
 /* Voice FAB Button Styles */

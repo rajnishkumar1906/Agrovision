@@ -84,8 +84,9 @@ export const recommendCrop = async (req, res) => {
     console.log(`${'='.repeat(60)}`);
 
     const startTime = Date.now();
+    const language = req.query.language || req.body.language || 'en';
 
-    const responseData = await forwardCropRecommendation(req.body);
+    const responseData = await forwardCropRecommendation(req.body, language);
 
     const processingTime = Date.now() - startTime;
 
@@ -127,40 +128,23 @@ export const detectDisease = async (req, res) => {
     console.log(`\n${'='.repeat(60)}`);
     console.log('📍 Gateway: Forwarding to Disease Detection Service');
     console.log(`${'='.repeat(60)}`);
-    
-    // 🔍 DEBUG INFO
-    console.log('🔍 DEBUG INFO:');
-    console.log('  - req.file:', req.file);
-    console.log('  - req.body:', req.body);
-    console.log('  - Content-Type:', req.headers['content-type']);
-    console.log('  - Content-Length:', req.headers['content-length']);
-    
-    // Get language from query param or header (default 'en')
-    const language = req.query.lang || req.headers['accept-language'] || 'en';
-    console.log(`  - Language: ${language}`);
-    
-    // Check if file exists
+
+    const startTime = Date.now();
+    const language = req.query.language || req.query.lang || 'en';
+
     if (!req.file) {
-      console.error('❌ ERROR: No file received!');
       return res.status(400).json({
         success: false,
-        message: 'No file uploaded. Please ensure form field name is "file"'
+        message: 'No file uploaded',
       });
     }
 
-    console.log('✅ File received successfully:', {
-      name: req.file.originalname,
-      size: `${(req.file.size / 1024).toFixed(2)} KB`,
-      mimetype: req.file.mimetype
+    const formData = new FormData();
+    formData.append('file', req.file.buffer, {
+      filename: req.file.originalname,
+      contentType: req.file.mimetype,
     });
 
-    const startTime = Date.now();
-
-    const formData = new FormData();
-    formData.append('file', req.file.buffer, req.file.originalname);
-
-    console.log('📤 Forwarding to disease detection service...');
-    // Pass language to the service
     const responseData = await forwardDiseaseDetection(formData, formData.getHeaders(), language);
 
     const processingTime = Date.now() - startTime;
@@ -238,49 +222,21 @@ export const getHistory = async (req, res) => {
   }
 };
 
-// POST /api/chatbot/ask-text - forward to KrishiBot Service
+// POST /api/chatbot/ask-text
 export const askChatbot = async (req, res) => {
   try {
-    console.log(`\n${'='.repeat(60)}`);
-    console.log('📍 Gateway: Forwarding to KrishiBot Service');
-    console.log(`${'='.repeat(60)}`);
-
-    const startTime = Date.now();
-
-    // Try to get query from multiple sources
-    let query = null;
-    
-    // 1. Check query parameters
-    if (req.query && req.query.query) {
-      query = req.query.query;
-      console.log('📝 Query from URL param:', query);
-    }
-    
-    // 2. Check JSON body
-    if (!query && req.body && req.body.query) {
-      query = req.body.query;
-      console.log('📝 Query from JSON body:', query);
-    }
-    
-    // 3. Check form-data (if sent as FormData)
-    if (!query && req.body && typeof req.body === 'object') {
-      // Handle case where body is already parsed but query is in different format
-      query = req.body.query || req.body.q;
-    }
+    const query = req.query.query || req.body.query;
+    const language = req.query.language || req.body.language || 'en';
+    const gender = req.query.gender || req.body.gender || 'male';
 
     if (!query) {
-      console.error('❌ No query found in request');
-      console.log('Request body:', req.body);
-      console.log('Request query:', req.query);
-      return res.status(400).json({
-        success: false,
-        message: 'Query is required. Please provide "query" parameter in URL or body'
-      });
+      return res.status(400).json({ success: false, message: 'Query is required' });
     }
 
-    console.log(`📝 Final query: "${query}"`);
+    const startTime = Date.now();
+    console.log(`📝 Final query: "${query}" (Lang: ${language}, Gender: ${gender})`);
 
-    const responseData = await forwardChatbotQuery(query);
+    const responseData = await forwardChatbotQuery(query, language, gender);
 
     const processingTime = Date.now() - startTime;
 
@@ -337,7 +293,8 @@ export const askChatbotVoice = async (req, res) => {
     });
 
     const language = req.query.language || req.body?.language || 'hi';
-    console.log(`🌐 Language: ${language}`);
+    const gender = req.query.gender || req.body?.gender || 'male';
+    console.log(`🌐 Language: ${language}, Gender: ${gender}`);
 
     const formData = new FormData();
     formData.append('file', req.file.buffer, {
@@ -345,7 +302,7 @@ export const askChatbotVoice = async (req, res) => {
       contentType: req.file.mimetype || 'audio/wav',
     });
 
-    const responseData = await forwardChatbotVoice(formData, language);
+    const responseData = await forwardChatbotVoice(formData, language, gender);
 
     console.log('✅ Voice response received from KrishiBot');
 

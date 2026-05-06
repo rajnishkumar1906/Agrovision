@@ -34,10 +34,12 @@ const HistoryModule = () => {
   // Helper to get display text based on action
   const getDisplayText = (item) => {
     if (item.action === 'DISEASE_DETECTION') {
-      return `${t('disease.result')}: ${item.details?.result?.disease || 'Unknown'}`;
+      const disease = item.details?.result?.disease_translated || item.details?.result?.disease || 'Unknown';
+      const crop = item.details?.result?.predicted_crop || '';
+      return `${crop ? crop + ': ' : ''}${disease}`;
     }
     if (item.action === 'CROP_RECOMMENDATION') {
-      return `${t('crop.recommendation')}: ${item.details?.result?.recommended_crop || 'Unknown'}`;
+      return item.details?.result?.recommended_crop || 'Unknown';
     }
     if (item.action === 'CHATBOT_QUERY') {
       const query = item.details?.query || 'No query';
@@ -49,9 +51,9 @@ const HistoryModule = () => {
 
   // Helper to get icon based on action
   const getIcon = (action) => {
-    if (action === 'DISEASE_DETECTION') return <Camera size={16} className="text-slate-400" />;
-    if (action === 'CROP_RECOMMENDATION') return <Sprout size={16} className="text-slate-400" />;
-    if (action === 'CHATBOT_QUERY') return <MessageCircle size={16} className="text-slate-400" />;
+    if (action === 'DISEASE_DETECTION') return <Camera size={16} className="text-red-500" />;
+    if (action === 'CROP_RECOMMENDATION') return <Sprout size={16} className="text-emerald-500" />;
+    if (action === 'CHATBOT_QUERY') return <MessageCircle size={16} className="text-blue-500" />;
     return <History size={16} className="text-slate-400" />;
   };
 
@@ -59,36 +61,46 @@ const HistoryModule = () => {
   const getBadgeLabel = (action) => {
     if (action === 'DISEASE_DETECTION') return t('nav.diseaseDetect');
     if (action === 'CROP_RECOMMENDATION') return t('nav.cropGuide');
-    if (action === 'CHATBOT_QUERY') return 'Chatbot';
+    if (action === 'CHATBOT_QUERY') return 'KrishiBot';
     return action;
+  };
+
+  // Helper to get badge color
+  const getBadgeStyle = (action) => {
+    switch (action) {
+      case 'DISEASE_DETECTION':
+        return 'bg-red-100 text-red-700 border-red-200';
+      case 'CROP_RECOMMENDATION':
+        return 'bg-emerald-100 text-emerald-700 border-emerald-200';
+      case 'CHATBOT_QUERY':
+        return 'bg-blue-100 text-blue-700 border-blue-200';
+      default:
+        return 'bg-slate-100 text-slate-700 border-slate-200';
+    }
   };
 
   return (
     <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm h-full overflow-hidden flex flex-col">
       <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2 mb-6">
-        <History className="w-5 h-5 text-purple-500" />
+        <History className="w-5 h-5 text-indigo-500" />
         {t('nav.history')}
       </h3>
       
-      <div className="flex-1 overflow-y-auto space-y-4 pr-2">
+      <div className="flex-1 overflow-y-auto space-y-4 pr-2 custom-scrollbar">
         {history.length === 0 ? (
           <p className="text-center text-slate-400 py-10">{t('dashboard.noActivity')}</p>
         ) : (
           history.map((item) => (
-            <div key={item._id} className="p-4 rounded-xl border border-slate-100 hover:bg-slate-50 transition-colors">
+            <div key={item._id} className="p-4 rounded-xl border border-slate-100 hover:bg-slate-50 transition-all hover:shadow-md">
               <div className="flex justify-between items-start mb-2">
-                <span className={`px-2 py-1 rounded text-xs font-bold ${
-                  item.action === 'DISEASE_DETECTION' || item.action === 'CROP_RECOMMENDATION' || item.action === 'CHATBOT_QUERY'
-                    ? 'bg-emerald-100 text-emerald-700'
-                    : 'bg-blue-100 text-blue-700'
-                }`}>
+                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${getBadgeStyle(item.action)}`}>
                   {getBadgeLabel(item.action)}
                 </span>
-                <span className="text-xs text-slate-400">{new Date(item.timestamp).toLocaleDateString()}</span>
+                <span className="text-[10px] text-slate-400 font-medium">{new Date(item.timestamp).toLocaleDateString()}</span>
               </div>
-              <div className="flex items-center gap-3">
-                {getIcon(item.action)}
-                <p className="font-semibold text-slate-700 text-sm">
+              <div className="flex items-start gap-3">
+                <div className="mt-0.5">{getIcon(item.action)}</div>
+                <p className="font-semibold text-slate-700 text-sm leading-snug">
                   {getDisplayText(item)}
                 </p>
               </div>

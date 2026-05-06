@@ -19,27 +19,6 @@ class GeminiGenerator:
         else:
             logging.warning("No embedding model – classifier disabled.")
 
-        self.system_block = """
-You are KrishiBot, for Indian farmers.
-Mission: Increase yield, manage pests/diseases, weather impacts, govt schemes.
-
-FORMATTING:
-- NO markdown. No *, #, `, etc.
-- Lists: 1. 2. 3. or A. B. C.
-- Plain text only. Use CAPS sparingly for emphasis.
-
-LANGUAGE & TONE:
-- Respond in farmer's language (Hinglish/Hindi/English).
-- Use "Aap", "Kisan bhai". Be respectful and encouraging.
-- Short sentences. Avoid jargon. Use local terms (Kharif, Rabi, Mandi).
-
-ANSWER GUIDELINES:
-- Length matches question complexity.
-- Base answer on CONTEXT. If missing, give universal agri advice.
-- For chemicals: "Read label or consult local KVK."
-- Suggest economical/organic (Jaivik) alternatives where possible.
-"""
-
     def _clean_text(self, text: str) -> str:
         text = re.sub(r'\*\*?', '', text)
         text = re.sub(r'#{1,6}\s?', '', text)
@@ -48,57 +27,32 @@ ANSWER GUIDELINES:
         text = re.sub(r'\n{3,}', '\n\n', text)
         return text.strip()
 
-    def generate(self, context: str, query: str) -> str:
+    def generate(self, context: str, query: str, prompt_type: str = "general", category: str = "general", tone: str = "helpful", preferred_language: str = "en", gender: str = "male") -> str:
         try:
-            if self.classifier:
-                category, tone = self.classifier.classify(query)
-                logging.info(f"Query classified as: {category}")
-            else:
-                category, tone = "general", "Helpful and polite."
-
-            if category == "greeting":
-                return "Namaste Kisan Bhai! Main KrishiBot hoon. Main kheti, mandi bhav, aur sarkaari yojanaon mein aapki madad kar sakta hoon. Puchiye aap kya jaana chahte hain?"
-
-            type_map = {
-                "definition": "definition",
-                "howto": "howto",
-                "scheme": "scheme",
-                "general": "general",
-                "market_info": "general",
-                "government_schemes": "scheme",
-                "pest_management": "howto",
-                "disease_control": "howto",
-                "soil_health": "general",
-                "organic_fertilizers": "howto",
-                "irrigation_tech": "howto",
-                "weather_safety": "general",
-                "cultivation_practice": "howto"
+            lang_map = {
+                "en": {"name": "English", "bot": "KrishiBot", "male": "Kisan Bhai", "female": "Kisan Behen", "other": "Kisan Sathi"},
+                "hi": {"name": "Hindi", "bot": "कृषिबॉट", "male": "किसान भाई", "female": "किसान बहन", "other": "किसान साथी"},
+                "pa": {"name": "Punjabi", "bot": "ਕ੍ਰਿਸ਼ੀਬੋਟ", "male": "ਕਿਸਾਨ ਵੀਰ", "female": "ਕਿਸਾਨ ਭੈਣ", "other": "ਕਿਸਾਨ ਸਾਥੀ"}
             }
-            prompt_type = type_map.get(category, "general")
+            li = lang_map.get(preferred_language, lang_map["en"])
+            salutation = li.get(gender, li["other"])
+            
+            prompt = f"""You are {li['bot']}, a farming assistant. User is a {gender} farmer ({salutation}).
+Respond ONLY in {li['name']}. Address them as {salutation}.
+NO markdown. Plain text only. Use local terms (Kharif, Mandi).
 
-            specific = {
-                "definition": "Give a very short definition (1-2 sentences).",
-                "howto": "Give clear, numbered steps. Keep practical.",
-                "scheme": "Explain eligibility, benefit, and how to apply.",
-                "general": "Give practical advice. Suggest organic alternatives."
-            }
-
-            prompt = f"""{self.system_block}
-
-SPECIFIC: {specific[prompt_type]}
-
-If farmer asksing in hindi then answer in hindi, if in english then answer in english, if in hinglish then answer in hinglish. Always use "Aap", "Kisan bhai". Be respectful and encouraging. Use short sentences. Avoid jargon. Use local terms (Kharif, Rabi, Mandi).
+Guidelines:
+- Actionable advice based on CONTEXT. If missing, give general advice.
+- For chemicals: "Read label/consult local KVK."
+- Suggest organic options.
 
 CONTEXT:
 {context}
 
 QUESTION:
 {query}
-Answer in summarise form but don't write it;s summary in output as its will be not good for interface
-ANSWER (plain text, no markdown):
-"""
-            if category in ["pest_management", "disease_control", "weather_safety"]:
-                prompt = f"Tone: {tone} (urgent, caring)\n{prompt}"
+
+ANSWER (plain text, in {li['name']}):"""
 
             logging.info(f"Sending prompt to Gemini (length: {len(prompt)} chars)")
             response = self.client.models.generate_content(

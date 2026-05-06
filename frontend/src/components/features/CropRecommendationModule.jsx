@@ -179,9 +179,12 @@ const CropRecommendationModule = ({ weatherData, fullPage }) => {
     setError('');
 
     try {
-      const payload = Object.fromEntries(
-        Object.entries(formData).map(([key, val]) => [key, parseFloat(val)])
-      );
+      const payload = {
+        ...Object.fromEntries(
+          Object.entries(formData).map(([key, val]) => [key, parseFloat(val)])
+        ),
+        language: language // Pass current language to backend
+      };
 
       const response = await fetch(`${API_BASE_URL}/api/recommend`, {
         method: 'POST',
@@ -290,6 +293,14 @@ const CropRecommendationModule = ({ weatherData, fullPage }) => {
       </div>
 
       <form className="space-y-4 flex-1 overflow-y-auto pr-2 custom-scrollbar" onSubmit={handleSubmit}>
+        <div className="bg-emerald-50 rounded-2xl p-4 mb-2 border border-emerald-100 flex items-center gap-4">
+          <img src="https://images.unsplash.com/photo-1592982537447-7440770cbfc9?auto=format&fit=crop&w=80&h=80&q=80" alt="Soil" className="w-16 h-16 rounded-xl object-cover shadow-sm" />
+          <div>
+            <p className="text-sm font-bold text-emerald-800">{t('crop.soilAnalysis') || 'Soil Analysis'}</p>
+            <p className="text-xs text-emerald-600">{t('crop.soilAnalysisSubtitle') || 'Choose the right crop for better yield'}</p>
+          </div>
+        </div>
+
         {/* Soil Nutrients Section */}
         <div className="bg-slate-50 rounded-xl p-4">
           <p className="text-xs font-bold text-slate-500 uppercase mb-3 flex items-center gap-2">

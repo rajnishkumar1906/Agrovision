@@ -28,15 +28,21 @@ async def ask_text(request: Request):
     """Ask KrishiBot a question via text"""
     try:
         query = None
+        language = "en"
+        gender = "male"
         
         # Try query parameter
         query = request.query_params.get("query")
+        language = request.query_params.get("language", "en")
+        gender = request.query_params.get("gender", "male")
         
         # Try JSON body
         if not query:
             try:
                 body = await request.json()
                 query = body.get("query")
+                language = body.get("language", language)
+                gender = body.get("gender", gender)
             except:
                 pass
         
@@ -45,16 +51,18 @@ async def ask_text(request: Request):
             try:
                 form = await request.form()
                 query = form.get("query")
+                language = form.get("language", language)
+                gender = form.get("gender", gender)
             except:
                 pass
         
         if not query or not query.strip():
             raise HTTPException(status_code=400, detail="Question cannot be empty")
         
-        logging.info(f"Text query: {query}")
+        logging.info(f"Text query: {query} (lang: {language}, gender: {gender})")
         
         # Get answer from RAG pipeline
-        result = rag_pipeline.run(query)
+        result = rag_pipeline.run(query, preferred_language=language, gender=gender)
         
         return {
             "success": True,
@@ -79,7 +87,8 @@ async def ask_text(request: Request):
 @router.post("/ask-voice")
 async def ask_voice(
     file: UploadFile = File(...),
-    language: Optional[str] = Query("hi", description="Response language")
+    language: Optional[str] = Query("hi", description="Response language"),
+    gender: Optional[str] = Query("male", description="User gender")
 ):
     """Ask KrishiBot a question via voice"""
     
@@ -106,10 +115,10 @@ async def ask_voice(
         if not query:
             raise HTTPException(status_code=400, detail="Could not understand audio")
         
-        logging.info(f"Voice query: {query}")
+        logging.info(f"Voice query: {query} (gender: {gender})")
         
         # Get answer
-        result = rag_pipeline.run(query)
+        result = rag_pipeline.run(query, preferred_language=language, gender=gender)
         answer = result["answer"]
         
         # Convert answer to speech

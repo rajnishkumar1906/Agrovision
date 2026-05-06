@@ -4,7 +4,7 @@ import { generatePasetoToken, verifyPasetoToken } from "../utils/pasetoTokenUtil
 // Register user
 export const register = async (req, res) => {
   try {
-    const { username, name, email, password } = req.body;
+    const { username, name, email, password, preferredLanguage, gender } = req.body;
     const finalName = name || username;
 
     console.log('Register request body:', req.body);
@@ -27,6 +27,8 @@ export const register = async (req, res) => {
       name: finalName,
       email,
       password,
+      preferredLanguage: preferredLanguage || 'en',
+      gender: gender || 'male',
     });
 
     // Wait for the token to be generated
@@ -42,6 +44,8 @@ export const register = async (req, res) => {
         name: user.name,
         username: user.name,
         email: user.email,
+        preferredLanguage: user.preferredLanguage,
+        gender: user.gender,
       },
     });
   } catch (error) {
@@ -95,6 +99,8 @@ export const login = async (req, res) => {
         name: user.name,
         username: user.name,
         email: user.email,
+        preferredLanguage: user.preferredLanguage,
+        gender: user.gender,
       },
     });
   } catch (error) {

@@ -1,389 +1,135 @@
-Here's the updated **README.md** without PS1 script info, focusing on virtual environment and Python 3.11:
+# 🌾 AgroVision - AI-Powered Agricultural Platform
 
-## **README.md**
+AgroVision is a modern, microservices-based platform designed to empower farmers with advanced AI tools. It provides crop recommendations, disease detection, and an intelligent multilingual chatbot (KrishiBot) to improve agricultural productivity.
 
-```markdown
-# 🌾 AgroVision - AI-Powered Agricultural Assistant
-
-AgroVision is a comprehensive AI-powered platform for farmers, offering crop recommendation, disease detection, and an intelligent chatbot (KrishiBot) for agricultural guidance.
-
-## 📋 Table of Contents
-- [Features](#features)
-- [Tech Stack](#tech-stack)
-- [Project Structure](#project-structure)
-- [Prerequisites](#prerequisites)
-- [Installation](#installation)
-- [Configuration](#configuration)
-- [Running the Services](#running-the-services)
-- [API Endpoints](#api-endpoints)
-- [Environment Variables](#environment-variables)
-- [Troubleshooting](#troubleshooting)
+---
 
 ## ✨ Features
 
-### 🌱 Crop Recommendation
-- AI-based crop suggestion based on soil nutrients (N, P, K)
-- Weather parameters (temperature, humidity, rainfall)
-- pH level analysis
-- Multi-language support (English, Hindi, Punjabi)
+- **🌱 Crop Recommendation**: Suggests the best crops based on soil nutrients (N, P, K, pH) and real-time weather data.
+- **🔬 Disease Detection**: Identifies plant diseases from leaf images using deep learning.
+- **🤖 KrishiBot**: A multilingual AI assistant (English, Hindi, Punjabi) for farming queries, powered by Gemini and RAG.
+- **🌍 Multilingual UI**: Fully translated interface in English, Hindi, and Punjabi.
+- **📊 History Tracking**: Logs and tracks all previous recommendations and detections.
+- **🌦️ Real-time Weather**: Integrated weather data for precise farm management.
+- **📱 Modern UI/UX**: Clean, responsive dashboard with professional agricultural aesthetics.
 
-### 🔬 Disease Detection
-- Plant disease identification from leaf images
-- TensorFlow-based deep learning model
-- Fast and accurate predictions
-
-### 🤖 KrishiBot Chatbot
-- Voice-enabled agricultural assistant
-- RAG (Retrieval-Augmented Generation) system
-- Gemini AI integration
-- Multi-language support
-- Text and voice queries
-
-### 📊 History Tracking
-- User prediction history
-- MongoDB-based storage
-- Crop recommendation history
-- Disease detection records
-
-### 🔐 Authentication
-- JWT-based user authentication
-- Secure API access
-- User profile management
+---
 
 ## 🛠️ Tech Stack
 
-### Backend Services
-| Service | Technology | Port |
-|---------|-----------|------|
-| Gateway | Node.js + Express | 5001 |
-| Auth | Node.js + Express | 4000 |
-| History | Node.js + Express | 8003 |
-| CropRec | Python + FastAPI | 8001 |
-| Disease | Python + FastAPI | 8002 |
-| KrishiBot | Python + FastAPI | 8000 |
+- **Frontend**: React, Vite, Tailwind CSS, Lucide Icons, i18next.
+- **API Gateway**: Node.js, Express (Centralized entry point).
+- **Microservices**:
+  - **Auth Service**: Node.js, Express, MongoDB.
+  - **History Service**: Node.js, Express, MongoDB.
+  - **AI Services**: Python 3.11, FastAPI, TensorFlow, Scikit-learn.
+  - **KrishiBot**: Python, RAG (FAISS), Gemini AI.
+- **Databases**: MongoDB (Users/History), Redis (Caching), FAISS (Vector Store).
+- **Infrastructure**: Docker, Docker Compose.
 
-### Databases
-- **MongoDB** - User data and history
-- **Vector Store** - KrishiBot RAG system
-
-### AI/ML
-- **TensorFlow** - Disease detection & Crop recommendation
-- **Transformers** - KrishiBot LLM integration
-- **Scikit-learn** - Crop prediction models
-- **Sentence-Transformers** - Embeddings for RAG
-
-### Frontend
-- **React + Vite** - Modern UI framework
-- **Tailwind CSS** - Styling
-- **Lucide Icons** - Icon library
+---
 
 ## 📁 Project Structure
 
-```
-Agro-Vision/
+```text
+Agro-vision/
 ├── agri-microservice/
-│   ├── gateway/              # API Gateway (Node.js)
-│   ├── auth/                 # Authentication Service (Node.js)
-│   ├── history/              # History Service (Node.js)
-│   ├── croprec/              # Crop Recommendation (Python/FastAPI)
-│   │   ├── main.py
-│   │   ├── model.pkl
-│   │   ├── standscaler.pkl
-│   │   └── minmaxscaler.pkl
-│   ├── disease/              # Disease Detection (Python/FastAPI)
-│   │   ├── main.py
-│   │   └── models/
-│   └── krishibot/            # KrishiBot Chatbot (Python/FastAPI)
-│       ├── app/
-│       ├── routes.py
-│       └── main.py
-├── frontend/                 # React Frontend
-├── requirements.txt          # Combined Python dependencies
-└── .gitignore               # Git ignore file
+│   ├── auth-service/           # User Authentication
+│   ├── crop-recomendation-system/ # AI Crop Advice
+│   ├── disease-detection/      # Leaf Image Analysis
+│   ├── gateway/                # API Gateway
+│   ├── history-service/        # Activity Logging
+│   └── krishibot/              # RAG-based AI Chatbot
+├── frontend/                   # React Frontend (Vite)
+├── docker-compose.yml          # Docker Orchestration
+└── RUN_ALL_SERVICES.ps1        # Local Windows Startup Script
 ```
 
-## 📋 Prerequisites
+---
 
-### Required Software
-- **Node.js** (v18 or higher)
-- **Python 3.11** (Required - other versions may cause compatibility issues)
-- **MongoDB** (v8.0 or higher)
-- **Git**
+## � Getting Started
 
-### Optional
-- **Redis** (for caching - can be disabled)
+### Prerequisites
+- **Docker & Docker Compose** (Recommended)
+- **Node.js v18+** & **Python 3.11** (For manual setup)
+- **MongoDB** (For manual setup)
 
-## 🚀 Installation
+### Option 1: Running with Docker (easiest)
 
-### 1. Clone the Repository
+1. **Clone the repo**:
+   ```bash
+   git clone https://github.com/rajnishkumar1906/Agro-vision.git
+   cd Agro-vision
+   ```
+
+2. **Set up Environment Variables**:
+   Create a `.env` file in the root directory (refer to `.env.example` in services).
+
+3. **Build and Start**:
+   ```bash
+   docker compose up -d --build
+   ```
+
+4. **Access the App**:
+   - **Frontend**: `http://localhost:5173`
+   - **Gateway**: `http://localhost:3000`
+
+---
+
+### Option 2: Manual Local Setup
+
+#### 1. Python Environment (Mandatory: Python 3.11)
 ```bash
-git clone https://github.com/rajnishkumar1906/Agrovision.git
-cd Agrovision
-```
-
-### 2. Install Node.js Dependencies
-```bash
-# Install dependencies for each Node.js service
-cd agri-microservice/gateway && npm install
-cd ../auth && npm install
-cd ../history && npm install
-cd ../../frontend && npm install
-```
-
-### 3. Setup Python Virtual Environment (Python 3.11)
-
-**Important:** Python 3.11 is required for compatibility with all dependencies.
-
-```powershell
-# Create shared virtual environment with Python 3.11
-& "C:\Users\YourName\AppData\Local\Programs\Python\Python311\python.exe" -m venv D:\agroenv
-
-# Activate virtual environment
-D:\agroenv\Scripts\Activate.ps1
-
-# Upgrade pip and setuptools
-python -m pip install --upgrade pip setuptools wheel
-
-# Install all Python dependencies
-pip install -r requirements.txt
-```
-
-**For Linux/Mac:**
-```bash
-# Create virtual environment
-python3.11 -m venv ~/agroenv
-
-# Activate virtual environment
-source ~/agroenv/bin/activate
+# Create and activate venv
+python -m venv .venv
+source .venv/bin/activate  # or .venv\Scripts\activate on Windows
 
 # Install dependencies
 pip install -r requirements.txt
 ```
 
-### 4. Setup MongoDB
-
-```powershell
-# Create data directory on D drive
-mkdir D:\data\db -Force
-
-# Start MongoDB (adjust version path as per your installation)
-& "C:\Program Files\MongoDB\Server\8.0\bin\mongod.exe" --dbpath "D:\data\db"
+#### 2. Install Node.js Dependencies
+```bash
+# Run in gateway, auth-service, history-service, and frontend
+npm install
 ```
 
-## ⚙️ Configuration
-
-### Environment Variables
-
-#### Gateway (`gateway/.env`)
-```env
-PORT=5001
-REDIS_ENABLED=false
-AUTH_SERVICE_URL=http://127.0.0.1:4000
-CROP_RECOMMENDATION_URL=http://127.0.0.1:8001
-HISTORY_SERVICE_URL=http://127.0.0.1:8003
-DISEASE_DETECTION_URL=http://127.0.0.1:8002
-KRISHIBOT_URL=http://127.0.0.1:8000
-JWT_SECRET=your_jwt_secret_here
-```
-
-#### Auth Service (`auth/.env`)
-```env
-PORT=4000
-MONGODB_URI=mongodb://127.0.0.1:27017/agri_app_users
-JWT_SECRET=your_jwt_secret_here
-JWT_EXPIRE=7d
-```
-
-#### History Service (`history/.env`)
-```env
-PORT=8003
-MONGODB_URI=mongodb://127.0.0.1:27017/agri_history
-```
-
-#### KrishiBot (`krishibot/krishibot.env`)
-```env
-GEMINI_API_KEY=your_gemini_api_key
-HUGGINGFACE_API_TOKEN=your_huggingface_token
-MODEL_NAME=gemini-2.5-flash-lite
-```
-
-## 🏃 Running the Services
-
-**Important:** Open each service in a separate terminal.
-
-### Terminal 1 - MongoDB
-```powershell
-& "C:\Program Files\MongoDB\Server\8.0\bin\mongod.exe" --dbpath "D:\data\db"
-```
-
-### Terminal 2 - Auth Service
-```powershell
-cd agri-microservice/auth
-npm run dev
-```
-
-### Terminal 3 - History Service
-```powershell
-cd agri-microservice/history
-npm run dev
-```
-
-### Terminal 4 - Gateway
-```powershell
-cd agri-microservice/gateway
-npm run server
-```
-
-### Terminal 5 - CropRec Service
-```powershell
-cd agri-microservice/croprec
-D:\agroenv\Scripts\Activate.ps1  # Activate shared venv
-python main.py
-```
-
-### Terminal 6 - Disease Service
-```powershell
-cd agri-microservice/disease
-D:\agroenv\Scripts\Activate.ps1  # Activate shared venv
-python main.py
-```
-
-### Terminal 7 - KrishiBot Service
-```powershell
-cd agri-microservice/krishibot
-D:\agroenv\Scripts\Activate.ps1  # Activate shared venv
-python run.py
-```
-
-### Terminal 8 - Frontend
-```powershell
-cd frontend
-npm run dev
-```
-
-## 🔗 API Endpoints
-
-### Gateway (http://localhost:5001)
-
-| Method | Endpoint | Description | Auth |
-|--------|----------|-------------|------|
-| POST | `/api/auth/register` | User registration | Public |
-| POST | `/api/auth/login` | User login | Public |
-| POST | `/api/auth/verify` | Verify token | Public |
-| POST | `/api/recommend` | Get crop recommendation | Required |
-| POST | `/api/disease-detect` | Detect plant disease | Required |
-| GET | `/api/history` | Get prediction history | Required |
-| GET | `/api/health` | Service health check | Required |
-
-### KrishiBot (http://localhost:8000)
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/ask-text` | Text query to chatbot |
-| POST | `/api/ask-voice` | Voice query to chatbot |
-| GET | `/api/health` | Health check |
-| GET | `/api/languages` | Supported languages |
-
-### CropRec (http://localhost:8001)
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/recommend/{language}` | Get crop recommendation |
-| GET | `/health` | Health check |
-
-### Disease (http://localhost:8002)
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/predict` | Detect disease from image |
-| GET | `/health` | Health check |
-
-## 🌍 Language Support
-
-AgroVision supports three languages:
-- 🇬🇧 **English** (en)
-- 🇮🇳 **Hindi** (hi)
-- 🇵🇯 **Punjabi** (pa)
-
-To use a specific language, include it in the URL:
-```http
-POST /api/recommend/hi
-POST /api/recommend/pa
-POST /api/recommend/en
-```
-
-## 🔧 Troubleshooting
-
-### MongoDB Connection Issues
-```powershell
-# Check if MongoDB is running
-netstat -an | findstr :27017
-
-# Start MongoDB service as Administrator
-net start MongoDB
-
-# Or run manually
-& "C:\Program Files\MongoDB\Server\8.0\bin\mongod.exe" --dbpath "D:\data\db"
-```
-
-### Port Already in Use
-```powershell
-# Find process using port (e.g., 8000)
-netstat -ano | findstr :8000
-
-# Kill the process (replace PID with actual number)
-taskkill /PID 12345 /F
-```
-
-### Python Virtual Environment Issues
-```powershell
-# Verify Python version (must be 3.11)
-python --version
-
-# Recreate virtual environment if needed
-deactivate
-Remove-Item -Path "D:\agroenv" -Recurse -Force
-& "C:\Users\YourName\AppData\Local\Programs\Python\Python311\python.exe" -m venv D:\agroenv
-D:\agroenv\Scripts\Activate.ps1
-pip install -r requirements.txt
-```
-
-### Model Loading Warnings
-The scikit-learn version warnings are safe to ignore. Models will still work.
-
-### Python Package Conflicts
-```powershell
-# Reinstall all dependencies
-D:\agroenv\Scripts\Activate.ps1
-pip install --upgrade pip setuptools wheel
-pip install -r requirements.txt --force-reinstall
-```
-
-## 📝 Notes
-
-- **Python 3.11 is mandatory** - Other versions may cause compatibility issues with TensorFlow and other dependencies
-- All Python services share a single virtual environment (`D:\agroenv`)
-- MongoDB data is stored on D drive to save C drive space
-- Make sure to set up your API keys in `krishibot.env` for KrishiBot to work
-
-## 👥 Author
-
-**Rajnish Kumar**
-
-## 🙏 Acknowledgments
-
-- Google Gemini AI for LLM capabilities
-- HuggingFace for transformers
-- Open-Meteo for weather data API
+#### 3. Run Services
+You can use the provided [agro.ps1](file:///f:/Agro-vision/agro.ps1) or [RUN_ALL_SERVICES.ps1](file:///f:/Agro-vision/RUN_ALL_SERVICES.ps1) on Windows, or start them manually:
+- **Auth**: `npm run dev` (Port 4001)
+- **History**: `npm run dev` (Port 8003)
+- **Gateway**: `npm run server` (Port 5001)
+- **AI Services**: `python main.py` (Ports 8001, 8002, 8003)
+- **Frontend**: `npm run dev` (Port 5173)
 
 ---
 
-**Made with ❤️ for Farmers** 🌾
-```
+## 🌍 Multilingual Support
 
-This README focuses on:
-- ✅ Python 3.11 requirement
-- ✅ Single shared virtual environment (`D:\agroenv`)
-- ✅ Manual service startup (no PS1 script)
-- ✅ All configuration details
-- ✅ Troubleshooting for virtual environment issues
+The platform supports **English (en)**, **Hindi (hi)**, and **Punjabi (pa)**. 
+- Language can be toggled in the Header.
+- Backend services automatically adapt based on the user's preferred language.
+
+---
+
+## 🔧 Troubleshooting
+
+- **Vite Import Errors**: Ensure `src/i18n.js` and `src/translations.js` exist in the frontend folder.
+- **Docker TLS Handshake Timeout**: This is usually a network issue. Restart Docker Desktop or try a different internet connection.
+- **YAML Errors**: Ensure `docker-compose.yml` does not have duplicate keys (like `version`).
+
+---
+
+## 👥 Authors
+
+- **Rajnish Kumar** - *Lead Developer*
+
+## 🙏 Acknowledgments
+
+- **Google Gemini** for LLM capabilities.
+- **Open-Meteo** for weather data.
+- **Unsplash** for professional agricultural imagery.
+
+---
+**AgroVision** - Empowering the hands that feed us. 🌾

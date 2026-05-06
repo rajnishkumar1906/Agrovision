@@ -38,14 +38,14 @@ services:
     container_name: agro-gateway
     restart: unless-stopped
     env_file:
-      - ./.env                         # loads PASETO_SECRET_KEY, etc.
+      - ./.env
     environment:
       REDIS_ENABLED: "false"
       PORT: 5001
       AUTH_SERVICE_URL: http://auth:4001
       HISTORY_SERVICE_URL: http://history:8003
-      CROPREC_SERVICE_URL: http://croprec:8001
-      DISEASE_SERVICE_URL: http://disease:8002
+      CROP_RECOMMENDATION_URL: http://croprec:8001
+      DISEASE_DETECTION_URL: http://disease:8002
       KRISHIBOT_SERVICE_URL: http://krishibot:8003
     ports:
       - "3000:5001"
@@ -64,9 +64,9 @@ services:
     container_name: agro-auth
     restart: unless-stopped
     env_file:
-      - ./.env                         # loads PASETO_SECRET_KEY, PASETO_EXPIRE
+      - ./.env
     environment:
-      MONGO_URI: mongodb://mongodb:27017/agro-auth
+      MONGODB_URI: mongodb://mongodb:27017/agro-auth
       PORT: 4001
     ports:
       - "4001:4001"

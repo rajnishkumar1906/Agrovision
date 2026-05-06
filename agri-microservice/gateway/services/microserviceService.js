@@ -78,9 +78,11 @@ export const verifyUserToken = async (token) => {
 };
 
 // Forward to Crop Recommendation Service
-export const forwardCropRecommendation = async (data) => {
+export const forwardCropRecommendation = async (data, language = 'en') => {
   try {
-    const response = await axios.post(`${CROP_RECOMMENDATION_URL}/recommend`, data, {
+    // Merge language into data if not present
+    const payload = { ...data, language };
+    const response = await axios.post(`${CROP_RECOMMENDATION_URL}/recommend`, payload, {
       timeout: 30000,
       headers: {
         'Content-Type': 'application/json',
@@ -92,7 +94,6 @@ export const forwardCropRecommendation = async (data) => {
   }
 };
 
-// Forward to Disease Detection Service
 // Forward to Disease Detection Service
 export const forwardDiseaseDetection = async (formData, headers, language = 'en') => {
   try {
@@ -153,9 +154,9 @@ export const getHistory = async (userId) => {
 };
 
 // Forward to KrishiBot Service
-export const forwardChatbotQuery = async (query) => {
+export const forwardChatbotQuery = async (query, language = 'en', gender = 'male') => {
   try {
-    const response = await axios.post(`${KRISHIBOT_URL}/api/ask-text?query=${encodeURIComponent(query)}`, {}, {
+    const response = await axios.post(`${KRISHIBOT_URL}/api/ask-text?query=${encodeURIComponent(query)}&language=${language}&gender=${gender}`, {}, {
       timeout: 30000,
       headers: {
         'Content-Type': 'application/json',
@@ -168,9 +169,9 @@ export const forwardChatbotQuery = async (query) => {
 };
 
 // Forward Voice to KrishiBot Service
-export const forwardChatbotVoice = async (formData, language = 'hi') => {
+export const forwardChatbotVoice = async (formData, language = 'hi', gender = 'male') => {
   try {
-    const response = await axios.post(`${KRISHIBOT_URL}/api/ask-voice?language=${language}`, formData, {
+    const response = await axios.post(`${KRISHIBOT_URL}/api/ask-voice?language=${language}&gender=${gender}`, formData, {
       timeout: 60000,
       headers: {
         ...formData.getHeaders ? formData.getHeaders() : { 'Content-Type': 'multipart/form-data' },

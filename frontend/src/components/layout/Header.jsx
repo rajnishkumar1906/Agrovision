@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import  { useContext, useState } from 'react';
 import { Leaf, Search, LogOut, Globe, ChevronDown, X } from 'lucide-react';
 import { LanguageContext } from '../../App';
 
@@ -111,7 +111,7 @@ const Header = ({ user, onLogout }) => {
             </div>
             <button 
               onClick={handleLogoutClick}
-              className="p-2 text-emerald-100 hover:text-white hover:bg-white/10 rounded-lg transition-colors md:flex items-center gap-2"
+              className="p-2 text-red-200 hover:text-white hover:bg-red-500/30 rounded-lg transition-colors md:flex items-center gap-2"
               title={t('common.logout')}
             >
               <LogOut size={18} />

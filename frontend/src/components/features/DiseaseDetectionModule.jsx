@@ -50,7 +50,7 @@ const DiseaseDetectionModule = ({ fullPage }) => {
 
     try {
       // Pass language as query parameter to get Gemini translation from backend
-      const response = await fetch(`${API_BASE_URL}/api/disease-detect?lang=${language}`, {
+      const response = await fetch(`${API_BASE_URL}/api/disease-detect?language=${language}`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` },
         body: formData
@@ -119,7 +119,7 @@ const DiseaseDetectionModule = ({ fullPage }) => {
       </div>
 
       <div className="flex flex-col md:flex-row gap-8">
-        <div className="flex-1">
+        <div className="flex-1 space-y-6">
           <div 
             className={`relative border-2 border-dashed rounded-2xl p-8 text-center transition-all duration-200 cursor-pointer group h-64 flex flex-col items-center justify-center
               ${dragActive ? 'border-emerald-500 bg-emerald-50' : 'border-slate-200 bg-slate-50 hover:border-emerald-400 hover:bg-slate-100'}
@@ -144,13 +144,13 @@ const DiseaseDetectionModule = ({ fullPage }) => {
                 </button>
               </div>
             ) : (
-              <>
+              <div className="flex flex-col items-center justify-center py-4 relative">
                 <div className="w-16 h-16 bg-white rounded-full shadow-sm flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                   <UploadCloud className="w-8 h-8 text-emerald-500" />
                 </div>
                 <h4 className="text-slate-800 font-semibold mb-1">{t('disease.upload')}</h4>
-                <p className="text-slate-400 text-xs">JPG, PNG (Max 5MB)</p>
-              </>
+                <p className="text-slate-400 text-xs">{language === 'hi' ? 'पौधे की पत्ती की फोटो अपलोड करें' : language === 'pa' ? 'ਪੌਦੇ ਦੇ ਪੱਤੇ ਦੀ ਫੋਟੋ ਅਪਲੋਡ ਕਰੋ' : 'Upload a photo of the plant leaf'}</p>
+              </div>
             )}
           </div>
 
@@ -165,6 +165,24 @@ const DiseaseDetectionModule = ({ fullPage }) => {
           >
             {loading ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : t('disease.analyze')}
           </button>
+
+          {/* Decorative images outside the upload area */}
+          {!preview && !result && (
+            <div className="grid grid-cols-3 gap-3 pt-4">
+              <div className="relative h-24 rounded-xl overflow-hidden shadow-sm group">
+                <img src="https://images.unsplash.com/photo-1597250861267-429663f244a8?auto=format&fit=crop&w=300&q=80" alt="Plant 1" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                <div className="absolute inset-0 bg-black/10"></div>
+              </div>
+              <div className="relative h-24 rounded-xl overflow-hidden shadow-sm group">
+                <img src="https://images.unsplash.com/photo-1591857177580-dc82b9ac4e1e?auto=format&fit=crop&w=300&q=80" alt="Plant 2" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                <div className="absolute inset-0 bg-black/10"></div>
+              </div>
+              <div className="relative h-24 rounded-xl overflow-hidden shadow-sm group">
+                <img src="https://images.unsplash.com/photo-1523348837708-15d4a09cfac2?auto=format&fit=crop&w=300&q=80" alt="Plant 3" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                <div className="absolute inset-0 bg-black/10"></div>
+              </div>
+            </div>
+          )}
         </div>
 
         {result && (
