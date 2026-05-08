@@ -22,7 +22,7 @@ const SplashScreen = ({ onFinish }) => {
           alt="Splash Background" 
           className="w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-white/30 backdrop-blur-md"></div>
+        <div className="absolute inset-0 bg-white/10"></div>
       </div>
 
       {/* Main Logo Content */}
