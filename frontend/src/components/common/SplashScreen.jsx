@@ -18,35 +18,35 @@ const SplashScreen = ({ onFinish }) => {
       {/* Background Image with Overlay */}
       <div className="absolute inset-0 z-0">
         <img 
-          src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1600&q=80" 
+          src="/agrovision_splash_bg.jpeg" 
           alt="Splash Background" 
           className="w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-emerald-950/40 backdrop-blur-[2px]"></div>
+        <div className="absolute inset-0 bg-white/30 backdrop-blur-md"></div>
       </div>
 
       {/* Main Logo Content */}
       <div className="relative z-10 flex flex-col items-center">
         <div className="relative mb-6">
-          <div className="w-24 h-24 bg-white/10 backdrop-blur-2xl rounded-[2.5rem] flex items-center justify-center shadow-2xl border border-white/20 animate-bounce overflow-hidden relative group">
+          <div className="w-24 h-24 bg-emerald-900/10 backdrop-blur-2xl rounded-[2.5rem] flex items-center justify-center shadow-2xl border border-emerald-900/10 animate-bounce overflow-hidden relative group">
             <img src="/agro-logo.svg" alt="AgroVision Logo" className="w-14 h-14" />
             
             {/* Shining Sweep Effect */}
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full animate-shimmer"></div>
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-emerald-400/30 to-transparent -translate-x-full animate-shimmer"></div>
           </div>
-          <Sprout className="absolute -bottom-2 -right-2 w-8 h-8 text-white animate-pulse" />
+          <Sprout className="absolute -bottom-2 -right-2 w-8 h-8 text-emerald-600 animate-pulse" />
         </div>
 
-        <h1 className="text-4xl font-black text-white tracking-tight mb-2">
-          Agro<span className="text-emerald-400">Vision</span>
+        <h1 className="text-4xl font-black text-emerald-900 tracking-tight mb-2">
+          Agro<span className="text-emerald-600">Vision</span>
         </h1>
         
         <div className="flex items-center gap-2">
-          <div className="h-[2px] w-8 bg-emerald-500/50 rounded-full"></div>
-          <p className="text-emerald-100/70 text-sm font-medium tracking-[0.2em] uppercase">
+          <div className="h-[2px] w-8 bg-emerald-600/30 rounded-full"></div>
+          <p className="text-emerald-800/70 text-sm font-medium tracking-[0.2em] uppercase">
             Smart Farming
           </p>
-          <div className="h-[2px] w-8 bg-emerald-500/50 rounded-full"></div>
+          <div className="h-[2px] w-8 bg-emerald-600/30 rounded-full"></div>
         </div>
 
         {/* Progress Bar */}
@@ -56,7 +56,7 @@ const SplashScreen = ({ onFinish }) => {
       </div>
 
       {/* Footer Text */}
-      <div className="absolute bottom-10 text-emerald-100/40 text-[10px] font-bold tracking-widest uppercase z-10">
+      <div className="absolute bottom-10 text-emerald-900/40 text-[10px] font-bold tracking-widest uppercase z-10">
         AgroVision Smart Farming
       </div>
 

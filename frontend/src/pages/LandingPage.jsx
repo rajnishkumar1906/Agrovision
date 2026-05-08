@@ -185,9 +185,9 @@ const LandingPage = ({ onNavigate }) => {
       <div className="relative z-10">
         {/* Navigation */}
         <nav className="flex items-center justify-between px-6 py-6 md:px-12 max-w-7xl mx-auto backdrop-blur-md bg-white/30 rounded-b-3xl border-b border-white/20 shadow-sm sticky top-0 z-50">
-          <div className="flex items-center gap-2 cursor-pointer group">
-            <img src="/agro-logo.svg" alt="AgroVision Logo" className="w-10 h-10 group-hover:scale-110 transition-transform" />
-            <span className="text-2xl font-black text-emerald-900 tracking-tighter italic">Agro<span className="text-emerald-600 not-italic">Vision</span></span>
+          <div className="flex items-center gap-2 text-emerald-700 font-bold text-xl group cursor-pointer">
+            <Leaf className="fill-current group-hover:scale-110 transition-transform" />
+            <span className="tracking-tight text-slate-900">AgroVision</span>
           </div>
           <div className="flex items-center gap-4 md:gap-8">
             <LanguageSelector />
