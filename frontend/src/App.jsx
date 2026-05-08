@@ -2,6 +2,7 @@ import React, { useState, useEffect, createContext } from 'react';
 import Dashboard from './pages/Dashboard';
 import AuthPage from './pages/AuthPage';
 import LandingPage from './pages/LandingPage';
+import SplashScreen from './components/common/SplashScreen';
 import useAuthStore from './store/useAuthStore';
 import useLanguageStore from './store/useLanguageStore';
 import { useTranslation } from 'react-i18next';
@@ -10,6 +11,7 @@ export const LanguageContext = createContext();
 
 function App() {
   const [currentPage, setCurrentPage] = useState('landing');
+  const [showSplash, setShowSplash] = useState(true);
   const { isAuthenticated, token, logout } = useAuthStore();
   const { language, setLanguage } = useLanguageStore();
   const { i18n, t } = useTranslation();
@@ -51,7 +53,8 @@ function App() {
 
   return (
     <LanguageContext.Provider value={contextValue}>
-      <div className="min-h-screen bg-slate-50 font-sans text-slate-900">
+      {showSplash && <SplashScreen onFinish={() => setShowSplash(false)} />}
+      <div className={`min-h-screen bg-slate-50 font-sans text-slate-900 ${showSplash ? 'hidden' : ''}`}>
         {currentPage === 'landing' && (
           <LandingPage 
             onNavigate={handleNavigate} 

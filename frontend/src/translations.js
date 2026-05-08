@@ -30,6 +30,7 @@ export const translations = {
         viewAll: 'View All',
         noActivity: 'No recent activity found',
         pestDetected: 'Pest detected',
+        optimal: 'Optimal',
         initiative: {
           badge: 'New Initiative',
           title: 'Sustainable Soil Health Program 2026',
@@ -136,6 +137,7 @@ export const translations = {
         viewAll: 'सभी देखें',
         noActivity: 'कोई हाल की गतिविधि नहीं मिली',
         pestDetected: 'कीट का पता चला',
+        optimal: 'इष्टतम',
         initiative: {
           badge: 'नई पहल',
           title: 'सतत मृदा स्वास्थ्य कार्यक्रम 2026',
@@ -242,6 +244,7 @@ export const translations = {
         viewAll: 'ਸਭ ਦੇਖੋ',
         noActivity: 'ਕੋਈ ਤਾਜ਼ਾ ਗਤੀਵਿਧੀ ਨਹੀਂ ਮਿਲੀ',
         pestDetected: 'ਕੀੜੇ ਦਾ ਪਤਾ ਲੱਗਿਆ',
+        optimal: 'ਅਨੁਕੂਲ',
         initiative: {
           badge: 'ਨਵੀਂ ਪਹਿਲ',
           title: 'ਟਿਕਾਊ ਮਿੱਟੀ ਸਿਹਤ ਪ੍ਰੋਗਰਾਮ 2026',

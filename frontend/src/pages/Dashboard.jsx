@@ -101,7 +101,7 @@ const Dashboard = ({ onLogout, initialTab = 'dashboard' }) => {
 
               <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
                 <WeatherCard data={weatherData} locationName={locationName || t('dashboard.weather')} />
-                <StatCard title={t('dashboard.soilNitrogen')} value="Optimal" subValue="120 kg/ha" icon={<TestTube className="w-5 h-5 text-emerald-600" />} color="bg-emerald-50 text-emerald-600" />
+                <StatCard title={t('dashboard.soilNitrogen')} value={t('dashboard.optimal')} subValue="120 kg/ha" icon={<TestTube className="w-5 h-5 text-emerald-600" />} color="bg-emerald-50 text-emerald-600" />
                 <StatCard title={t('dashboard.alerts')} value={`2 ${t('common.new') || 'New'}`} subValue={t('dashboard.pestDetected') || 'Pest detected'} icon={<AlertTriangle className="w-5 h-5 text-amber-600" />} color="bg-amber-50 text-amber-600" />
               </div>
 
@@ -180,16 +180,20 @@ const Dashboard = ({ onLogout, initialTab = 'dashboard' }) => {
                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
                   {[
                     { id: 1, name: t('dashboard.market.products.wheat'), price: "₹2400/q", img: "https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?auto=format&fit=crop&w=400&q=80" },
-                    { id: 2, name: t('dashboard.market.products.tomatoes'), price: "₹40/kg", img: "https://images.unsplash.com/photo-1590644365607-1c5a519a7a37?auto=format&fit=crop&w=400&q=80" },
+                    { id: 2, name: t('dashboard.market.products.tomatoes'), price: "₹40/kg", img: "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?auto=format&fit=crop&w=400&q=80" },
                     { id: 3, name: t('dashboard.market.products.honey'), price: "₹450/kg", img: "https://images.unsplash.com/photo-1587049352846-4a222e784d38?auto=format&fit=crop&w=400&q=80" },
                     { id: 4, name: t('dashboard.market.products.rice'), price: "₹6500/q", img: "https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&w=400&q=80" },
-                    { id: 5, name: t('dashboard.market.products.chillies'), price: "₹60/kg", img: "https://images.unsplash.com/photo-1588252303782-cb80119abd6d?auto=format&fit=crop&w=400&q=80" }
+                    { id: 5, name: t('dashboard.market.products.chillies'), price: "₹60/kg", img: "https://images.unsplash.com/photo-1563514227147-6d2ff665a6a0?auto=format&fit=crop&w=400&q=80" }
                   ].map((product) => (
                     <div key={product.id} className="bg-white rounded-2xl overflow-hidden border border-slate-100 shadow-sm hover:shadow-md transition-all group cursor-pointer">
-                      <div className="h-32 overflow-hidden relative">
+                      <div className="h-32 overflow-hidden relative bg-slate-100">
                         <img 
                           src={product.img} 
                           alt={product.name} 
+                          onError={(e) => {
+                            e.target.onerror = null;
+                            e.target.src = 'https://images.unsplash.com/photo-1464226184884-fa280b87c399?auto=format&fit=crop&w=400&q=80';
+                          }}
                           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                         />
                         <div className="absolute top-2 right-2 bg-emerald-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded shadow-sm">
@@ -217,8 +221,16 @@ const Dashboard = ({ onLogout, initialTab = 'dashboard' }) => {
                     { title: t('dashboard.advice.articles.soil'), date: "May 15, 2026", img: "https://images.unsplash.com/photo-1464226184884-fa280b87c399?auto=format&fit=crop&w=600&q=80" }
                   ].map((tip, idx) => (
                     <div key={idx} className="bg-white rounded-3xl overflow-hidden border border-slate-100 shadow-sm hover:shadow-xl transition-all group">
-                      <div className="h-40 overflow-hidden relative">
-                        <img src={tip.img} alt={tip.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                      <div className="h-40 overflow-hidden relative bg-slate-100">
+                        <img 
+                          src={tip.img} 
+                          alt={tip.title} 
+                          onError={(e) => {
+                            e.target.onerror = null;
+                            e.target.src = 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=600&q=80';
+                          }}
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
+                        />
                         <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-bold text-emerald-600 shadow-sm">
                           {t('dashboard.advice.tips')}
                         </div>
