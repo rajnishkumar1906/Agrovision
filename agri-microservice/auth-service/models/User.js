@@ -23,6 +23,16 @@ const UserSchema = new mongoose.Schema({
     minlength: 6,
     select: false,
   },
+  preferredLanguage: {
+    type: String,
+    enum: ['en', 'hi', 'pa'],
+    default: 'en',
+  },
+  gender: {
+    type: String,
+    enum: ['male', 'female', 'other'],
+    default: 'male',
+  },
   createdAt: {
     type: Date,
     default: Date.now,

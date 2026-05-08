@@ -1,8 +1,23 @@
 ﻿FROM python:3.11-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
 WORKDIR /app
+
 COPY requirements.txt ./
-RUN pip install --no-cache-dir --upgrade pip setuptools wheel \
+
+RUN pip install --no-cache-dir --upgrade pip \
  && pip install --no-cache-dir -r requirements.txt
+
+# Install ffmpeg after pip to preserve library cache
+RUN apt-get update && apt-get install -y \
+    ffmpeg \
+    libavcodec-extra \
+ && rm -rf /var/lib/apt/lists/*
+
 COPY . .
+
 EXPOSE 8003
-CMD ["python", "-m", "app.main"]
+
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8003"]

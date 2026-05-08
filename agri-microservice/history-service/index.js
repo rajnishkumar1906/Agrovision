@@ -8,7 +8,7 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 8003;
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://mongo:27017/agri_history';
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://mongodb:27017/agro-history';
 
 // Middleware
 app.use(cors());
@@ -54,11 +54,45 @@ app.post('/log', async (req, res) => {
 app.get('/history/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
-    console.log(`Fetching history for userId: ${userId}`);
+    const { limit = 100, page = 1, action, search } = req.query;
+    
+    const query = { userId };
+    
+    // Add action filter if provided
+    if (action && action !== 'ALL') {
+      query.action = action;
+    }
+    
+    // Add text search if provided
+    if (search) {
+      query.$or = [
+        { 'details.query': { $regex: search, $options: 'i' } },
+        { 'details.result.disease': { $regex: search, $options: 'i' } },
+        { 'details.result.disease_translated': { $regex: search, $options: 'i' } },
+        { 'details.result.recommended_crop': { $regex: search, $options: 'i' } },
+        { 'details.result.answer': { $regex: search, $options: 'i' } }
+      ];
+    }
 
-    const logs = await Log.find({ userId }).sort({ timestamp: -1 });
+    console.log(`Fetching history for userId: ${userId}`, query);
 
-    return res.status(200).json({ success: true, count: logs.length, logs });
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+    
+    const logs = await Log.find(query)
+      .sort({ timestamp: -1 })
+      .limit(parseInt(limit))
+      .skip(skip);
+
+    const total = await Log.countDocuments(query);
+
+    return res.status(200).json({ 
+      success: true, 
+      count: logs.length, 
+      total,
+      page: parseInt(page),
+      totalPages: Math.ceil(total / parseInt(limit)),
+      logs 
+    });
   } catch (error) {
     console.error('Error fetching history:', error.message);
     return res.status(500).json({ success: false, message: 'Failed to fetch history', error: error.message });

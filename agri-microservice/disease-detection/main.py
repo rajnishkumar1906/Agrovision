@@ -1,4 +1,4 @@
-from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi import FastAPI, UploadFile, File, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import numpy as np
@@ -8,6 +8,7 @@ import tensorflow as tf
 import os
 from typing import Optional, AsyncGenerator
 from contextlib import asynccontextmanager
+from app.utils.translator import translate_disease_sync
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
@@ -85,6 +86,8 @@ DISEASE_CLASSES = [
 class DiseaseDetectionResponse(BaseModel):
     predicted_crop: Optional[str] = None
     disease: Optional[str] = None
+    disease_translated: Optional[str] = None
+    disease_key: Optional[str] = None
     confidence: float = 0.0
     class_index: int = -1
     error: Optional[str] = None
@@ -211,12 +214,16 @@ async def root():
     }
 
 @app.post("/predict", response_model=DiseaseDetectionResponse, tags=["Prediction"])
-async def predict(file: UploadFile = File(...)):
+async def predict(
+    file: UploadFile = File(...),
+    language: str = Query("en", description="Language for translation: en, hi, pa")
+):
     """
     Predict crop disease from a leaf image.
     
     Parameters:
     - file: Image file (JPG, PNG) of a plant leaf
+    - language: Language code for translation
     
     Returns:
     - JSON with predicted_crop, disease, confidence, and class_index
@@ -247,19 +254,30 @@ async def predict(file: UploadFile = File(...)):
         
         # Get class name
         if class_index < len(DISEASE_CLASSES):
-            class_name = DISEASE_CLASSES[class_index]
+            disease_key = DISEASE_CLASSES[class_index]
             
             # Split class name by '___' to get crop and disease
-            parts = class_name.split('___')
+            parts = disease_key.split('___')
             predicted_crop = parts[0]
             disease = parts[1].title().replace('_', ' ')
+            
+            # Translate disease name
+            try:
+                disease_translated = translate_disease_sync(disease_key, language)
+            except Exception as e:
+                print(f"Translation error: {e}")
+                disease_translated = disease
         else:
             predicted_crop = "Unknown"
             disease = "Unknown"
+            disease_translated = "Unknown"
+            disease_key = "Unknown"
         
         return DiseaseDetectionResponse(
             predicted_crop=predicted_crop,
             disease=disease,
+            disease_translated=disease_translated,
+            disease_key=disease_key,
             confidence=confidence,
             class_index=class_index,
             error=None,

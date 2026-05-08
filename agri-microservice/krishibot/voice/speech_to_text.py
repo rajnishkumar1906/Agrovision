@@ -40,6 +40,12 @@ class SpeechToText:
             logging.info(f"Transcribed: {text[:50]}...")
             return text
             
+        except RuntimeError as e:
+            if "ffmpeg" in str(e).lower():
+                logging.error("FFmpeg is not installed on the server. Voice features require FFmpeg.")
+                return "ERROR_FFMPEG_MISSING"
+            logging.error(f"Transcription runtime error: {e}")
+            return ""
         except Exception as e:
             logging.error(f"Transcription failed: {e}")
             return ""

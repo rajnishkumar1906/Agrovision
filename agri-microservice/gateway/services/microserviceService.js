@@ -3,11 +3,11 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL || 'http://localhost:4000';
-const CROP_RECOMMENDATION_URL = process.env.CROP_RECOMMENDATION_URL || 'http://localhost:8001';
-const HISTORY_SERVICE_URL = process.env.HISTORY_SERVICE_URL || 'http://localhost:8003';
-const DISEASE_DETECTION_URL = process.env.DISEASE_DETECTION_URL || 'http://localhost:8002';
-const KRISHIBOT_URL = process.env.KRISHIBOT_URL || 'http://localhost:8000';
+const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL || 'http://auth:4001';
+const CROP_RECOMMENDATION_URL = process.env.CROP_RECOMMENDATION_URL || 'http://croprec:8001';
+const HISTORY_SERVICE_URL = process.env.HISTORY_SERVICE_URL || 'http://history:8003';
+const DISEASE_DETECTION_URL = process.env.DISEASE_DETECTION_URL || 'http://disease:8002';
+const KRISHIBOT_URL = process.env.KRISHIBOT_SERVICE_URL || 'http://krishibot:8003';
 
 // Forward to Auth Service - Register
 export const registerUser = async (userData) => {
@@ -78,9 +78,11 @@ export const verifyUserToken = async (token) => {
 };
 
 // Forward to Crop Recommendation Service
-export const forwardCropRecommendation = async (data) => {
+export const forwardCropRecommendation = async (data, language = 'en') => {
   try {
-    const response = await axios.post(`${CROP_RECOMMENDATION_URL}/recommend`, data, {
+    // Merge language into data if not present
+    const payload = { ...data, language };
+    const response = await axios.post(`${CROP_RECOMMENDATION_URL}/recommend`, payload, {
       timeout: 30000,
       headers: {
         'Content-Type': 'application/json',
@@ -92,7 +94,6 @@ export const forwardCropRecommendation = async (data) => {
   }
 };
 
-// Forward to Disease Detection Service
 // Forward to Disease Detection Service
 export const forwardDiseaseDetection = async (formData, headers, language = 'en') => {
   try {
@@ -141,9 +142,16 @@ export const checkServiceHealth = async () => {
 };
 
 // Get History from History Service
-export const getHistory = async (userId) => {
+export const getHistory = async (userId, params = {}) => {
   try {
-    const response = await axios.get(`${HISTORY_SERVICE_URL}/history/${userId}`, {
+    const { action, search, limit, page } = params;
+    const url = new URL(`${HISTORY_SERVICE_URL}/history/${userId}`);
+    if (action) url.searchParams.append('action', action);
+    if (search) url.searchParams.append('search', search);
+    if (limit) url.searchParams.append('limit', limit);
+    if (page) url.searchParams.append('page', page);
+
+    const response = await axios.get(url.toString(), {
       timeout: 10000,
     });
     return response.data;
@@ -153,9 +161,9 @@ export const getHistory = async (userId) => {
 };
 
 // Forward to KrishiBot Service
-export const forwardChatbotQuery = async (query) => {
+export const forwardChatbotQuery = async (query, language = 'en', gender = 'male') => {
   try {
-    const response = await axios.post(`${KRISHIBOT_URL}/api/ask-text?query=${encodeURIComponent(query)}`, {}, {
+    const response = await axios.post(`${KRISHIBOT_URL}/api/ask-text?query=${encodeURIComponent(query)}&language=${language}&gender=${gender}`, {}, {
       timeout: 30000,
       headers: {
         'Content-Type': 'application/json',
@@ -168,9 +176,9 @@ export const forwardChatbotQuery = async (query) => {
 };
 
 // Forward Voice to KrishiBot Service
-export const forwardChatbotVoice = async (formData, language = 'hi') => {
+export const forwardChatbotVoice = async (formData, language = 'hi', gender = 'male') => {
   try {
-    const response = await axios.post(`${KRISHIBOT_URL}/api/ask-voice?language=${language}`, formData, {
+    const response = await axios.post(`${KRISHIBOT_URL}/api/ask-voice?language=${language}&gender=${gender}`, formData, {
       timeout: 60000,
       headers: {
         ...formData.getHeaders ? formData.getHeaders() : { 'Content-Type': 'multipart/form-data' },

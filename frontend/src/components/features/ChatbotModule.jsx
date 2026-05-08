@@ -1,7 +1,7 @@
-import React, { useMemo, useRef, useEffect, useState, useContext } from 'react';
+import  { useMemo, useRef, useEffect, useState, useContext } from 'react';
 import useAuthStore from '../../store/useAuthStore';
 import { API_BASE_URL } from '../../config';
-import { Mic, Send, Volume2, X, Bot, Sparkles } from 'lucide-react';
+import { Mic, Send, Volume2, X, Bot, Sparkles, ChevronRight } from 'lucide-react';
 import { LanguageContext } from '../../App';
 
 const ChatbotModule = ({ fullPage = false }) => {
@@ -13,7 +13,7 @@ const ChatbotModule = ({ fullPage = false }) => {
       en: [
         {
           id: 1,
-          html: `Hello! I am <strong>KrishiBot</strong>. Now powered by Gemini AI!<br><br>
+          html: `Hello! I am <strong>KrishiBot</strong>. I am your digital farming assistant.<br><br>
                 I can help you with crop diseases, fertilizers, govt schemes, and farming problems.<br><br>
                 You can ask in English, Hindi, or Punjabi. 🚜`,
           sender: 'bot',
@@ -23,7 +23,7 @@ const ChatbotModule = ({ fullPage = false }) => {
       hi: [
         {
           id: 1,
-          html: `नमस्ते! मैं <strong>KrishiBot</strong> हूँ। अब मैं Gemini AI से संचालित हूँ!<br><br>
+          html: `नमस्ते! मैं <strong>कृषिबॉट</strong> हूँ। मैं आपका डिजिटल खेती सहायक हूँ!<br><br>
                 मैं आपकी फसलों, खाद, सरकारी योजनाओं और खेती की समस्याओं में मदद कर सकता हूँ।<br><br>
                 आप हिंदी, अंग्रेजी या पंजाबी में पूछ सकते हैं। 🚜`,
           sender: 'bot',
@@ -33,7 +33,7 @@ const ChatbotModule = ({ fullPage = false }) => {
       pa: [
         {
           id: 1,
-          html: `ਸਤਿ ਸ੍ਰੀ ਅਕਾਲ! ਮੈਂ <strong>KrishiBot</strong> ਹਾਂ। ਹੁਣ Gemini AI ਦੁਆਰਾ ਸੰਚਾਲਿਤ ਹੈ!<br><br>
+          html: `ਸਤਿ ਸ੍ਰੀ ਅਕਾਲ! ਮੈਂ <strong>ਕ੍ਰਿਸ਼ੀਬੋਟ</strong> ਹਾਂ। ਮੈਂ ਤੁਹਾਡਾ ਡਿਜੀਟਲ ਖੇਤੀ ਸਹਾਇਕ ਹਾਂ!<br><br>
                 ਮੈਂ ਫਸਲਾਂ ਦੀਆਂ ਬਿਮਾਰੀਆਂ, ਖਾਦਾਂ, ਸਰਕਾਰੀ ਸਕੀਮਾਂ ਅਤੇ ਖੇਤੀਬਾੜੀ ਦੀਆਂ ਸਮੱਸਿਆਵਾਂ ਵਿੱਚ ਤੁਹਾਡੀ ਮਦਦ ਕਰ ਸਕਦਾ ਹਾਂ।<br><br>
                 ਤੁਸੀਂ ਪੰਜਾਬੀ, ਹਿੰਦੀ ਜਾਂ ਅੰਗਰੇਜ਼ੀ ਵਿੱਚ ਪੁੱਛ ਸਕਦੇ ਹੋ। 🚜`,
           sender: 'bot',
@@ -164,15 +164,15 @@ const ChatbotModule = ({ fullPage = false }) => {
 
   const handleVoiceUpload = async (audioBlob) => {
     setIsTyping(true);
-    const formData = new FormData();
-    formData.append('audio', audioBlob, 'recording.wav');
-    formData.append('mode', language === 'hi' ? 'Hindi' : 'English');
-
     try {
-      const response = await fetch(`${API_BASE_URL}/api/chatbot/ask-voice`, {
+      const { user } = useAuthStore.getState();
+      const formData = new FormData();
+      formData.append('file', audioBlob, 'recording.wav');
+      
+      const response = await fetch(`${API_BASE_URL}/api/chatbot/ask-voice?language=${language}&gender=${user?.gender || 'male'}`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'Authorization': `Bearer ${useAuthStore.getState().token}`
         },
         body: formData,
       });
@@ -243,6 +243,7 @@ const ChatbotModule = ({ fullPage = false }) => {
     setIsTyping(true);
 
     try {
+      const { user } = useAuthStore.getState();
       // Send as JSON with query in URL
       const response = await fetch(`${API_BASE_URL}/api/chatbot/ask-text?query=${encodeURIComponent(text)}`, {
         method: 'POST',
@@ -250,7 +251,11 @@ const ChatbotModule = ({ fullPage = false }) => {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ query: text })
+        body: JSON.stringify({ 
+          query: text,
+          language: language, // Pass the current language
+          gender: user?.gender || 'male' // Pass gender from user store
+        })
       });
 
       if (!response.ok) {
@@ -380,7 +385,9 @@ const ChatbotModule = ({ fullPage = false }) => {
       {/* FAB Button - Only show when chat is closed and not in fullPage mode */}
       {!fullPage && !isChatOpen && !isMicModalOpen && !isSpeakerModalOpen && (
         <div className="krishibot-fab group">
-          <span className="fab-tooltip">KrishiBot से बात करें | Speak to KrishiBot</span>
+          <span className="fab-tooltip">
+            {language === 'hi' ? 'कृषिबॉट से बात करें' : language === 'pa' ? 'ਕ੍ਰਿਸ਼ੀਬੋਟ ਨਾਲ ਗੱਲ ਕਰੋ' : 'Speak to KrishiBot'}
+          </span>
           <button
             className="fab-main relative overflow-hidden group"
             onClick={toggleChat}
@@ -396,148 +403,163 @@ const ChatbotModule = ({ fullPage = false }) => {
 
       {/* Chat Window */}
       {(isChatOpen || fullPage) && (
-        <div className={`krishibot ${fullPage ? 'h-full' : 'floating'}`}>
-          <div className="app-container">
-            {/* Header */}
-            <header className="header">
-              <div className="header-content">
-                <div className="logo-section">
-                  <div className="logo-icon">🌾</div>
-                  <div className="logo-text">
-                    <h1>KrishiBot</h1>
-                    <p>आपका किसान साथी | Your Farmer Friend</p>
-                  </div>
-                </div>
-
-                <div className="action-buttons">
-                  <button
-                    className={`action-btn ${showQuickActions ? 'active bg-emerald-100 text-emerald-600' : ''}`}
-                    onClick={() => setShowQuickActions(!showQuickActions)}
-                    title="Normal Things / Quick Actions"
-                  >
-                    <span className="text-xs font-bold px-1">Common</span>
-                  </button>
-                  {!fullPage && (
-                    <button
-                      className="action-btn close-btn"
-                      onClick={toggleChat}
-                      title="Close"
-                    >
-                      <X size={20} />
-                    </button>
-                  )}
-                  <button
-                    type="button"
-                    className={`action-btn mic-btn ${isRecording ? 'is-listening' : ''}`}
-                    onClick={isRecording ? stopRecording : startRecording}
-                    aria-label="Voice Input"
-                    title="Voice Input"
-                  >
-                    <Mic size={20} />
-                  </button>
-                  <button
-                    type="button"
-                    className="action-btn speaker-btn"
-                    onClick={() => speakText(lastBotAnswer)}
-                    disabled={!lastBotAnswer || isSpeaking}
-                    aria-label="Voice Output"
-                    title={!lastBotAnswer ? 'No answer to replay' : 'Voice Output'}
-                  >
-                    <Volume2 size={20} />
-                  </button>
-                </div>
+    <div className={`krishibot ${fullPage ? 'h-full' : 'floating shadow-2xl'}`}>
+      <div className="app-container">
+        {/* Header */}
+        <header className="header">
+          <div className="header-content">
+            <div className="logo-section">
+              <div className="logo-icon bg-white/20 p-2 rounded-xl">
+                <Bot className="text-white w-6 h-6" />
               </div>
-            </header>
+              <div className="logo-text">
+                <h1 className="text-lg font-black tracking-tight leading-none mb-1">
+                  {language === 'hi' ? 'कृषिबॉट' : language === 'pa' ? 'ਕ੍ਰਿਸ਼ੀਬੋਟ' : 'KrishiBot'}
+                </h1>
+                <p className="text-[10px] font-bold uppercase tracking-widest opacity-80 leading-none">
+                  {language === 'hi' ? 'आपका किसान साथी' : language === 'pa' ? 'ਤੁਹਾਡਾ ਕਿਸਾਨ ਸਾਥੀ' : 'AI Farm Assistant'}
+                </p>
+              </div>
+            </div>
 
-            {/* Chat Messages */}
-            <main className="chat-container relative">
-              {showQuickActions && (
-                <div className="absolute inset-0 bg-white/95 z-10 p-4 animate-fade-in overflow-y-auto">
-                  <div className="flex justify-between items-center mb-4">
-                    <h3 className="font-bold text-slate-800">Common Tasks</h3>
-                    <button onClick={() => setShowQuickActions(false)} className="text-slate-400 hover:text-slate-600">
-                      <X size={18} />
-                    </button>
+            <div className="action-buttons">
+              <button
+                className={`action-btn ${showQuickActions ? 'active' : ''}`}
+                onClick={() => setShowQuickActions(!showQuickActions)}
+                title="Quick Actions"
+              >
+                <Sparkles size={18} />
+              </button>
+              
+              <button
+                type="button"
+                className={`action-btn ${isRecording ? 'active bg-red-500 text-white animate-pulse' : ''}`}
+                onClick={isRecording ? stopRecording : startRecording}
+                title="Voice Input"
+              >
+                <Mic size={18} />
+              </button>
+
+              <button
+                type="button"
+                className={`action-btn ${isSpeaking ? 'active' : ''}`}
+                onClick={() => speakText(lastBotAnswer)}
+                disabled={!lastBotAnswer || isSpeaking}
+                title="Listen Response"
+              >
+                <Volume2 size={18} />
+              </button>
+
+              {!fullPage && (
+                <button
+                  className="action-btn bg-white/10 hover:bg-white/20"
+                  onClick={toggleChat}
+                  title="Close"
+                >
+                  <X size={18} />
+                </button>
+              )}
+            </div>
+          </div>
+        </header>
+
+        {/* Chat Messages */}
+        <main className="chat-container">
+          {showQuickActions && (
+            <div className="absolute inset-0 bg-white/95 z-20 p-6 animate-fade-in overflow-y-auto">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="font-black text-slate-800 uppercase tracking-wider text-sm">Common Tasks</h3>
+                <button onClick={() => setShowQuickActions(false)} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
+                  <X size={18} className="text-slate-400" />
+                </button>
+              </div>
+              <div className="grid gap-4">
+                {quickActions.map((action, index) => (
+                  <button
+                    key={index}
+                    onClick={() => handleQuickAction(action)}
+                    className="text-left p-4 rounded-2xl border border-slate-100 hover:border-emerald-200 hover:bg-emerald-50 transition-all group relative overflow-hidden"
+                  >
+                    <div className="relative z-10">
+                      <p className="font-bold text-slate-800 group-hover:text-emerald-700 mb-1">{action.label}</p>
+                      <p className="text-xs text-slate-500 font-medium leading-relaxed">{action.desc}</p>
+                    </div>
+                    <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <ChevronRight size={16} className="text-emerald-500" />
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="messages-wrapper custom-scrollbar" ref={messagesWrapperRef}>
+            <div className="messages">
+              {messages.map((msg) => (
+                <div key={msg.id} className={`message ${msg.sender}`}>
+                  <div className="message-bubble">
+                    <div className="message-icon">
+                      {msg.sender === 'user' ? '👤' : <Bot size={16} />}
+                    </div>
+                    <div
+                      className="message-content shadow-sm"
+                      dangerouslySetInnerHTML={{ __html: msg.html }}
+                    />
                   </div>
-                  <div className="grid gap-3">
-                    {quickActions.map((action, index) => (
-                      <button
-                        key={index}
-                        onClick={() => handleQuickAction(action)}
-                        className="text-left p-3 rounded-xl border border-slate-100 hover:border-emerald-200 hover:bg-emerald-50 transition-all group"
-                      >
-                        <p className="font-bold text-sm text-slate-700 group-hover:text-emerald-600">{action.label}</p>
-                        <p className="text-xs text-slate-500 line-clamp-2">{action.desc}</p>
-                      </button>
-                    ))}
+                </div>
+              ))}
+              
+              {/* Typing Indicator */}
+              {isTyping && (
+                <div className="message bot">
+                  <div className="message-bubble">
+                    <div className="message-icon">
+                      <Bot size={16} />
+                    </div>
+                    <div className="message-content bg-white shadow-sm">
+                      <div className="flex flex-col gap-2">
+                        <div className="typing-dots">
+                          <span />
+                          <span />
+                          <span />
+                        </div>
+                        <span className="typing-text italic opacity-60">
+                          {language === 'hi' ? 'कृषिबॉट सोच रहा है...' : language === 'pa' ? 'ਕ੍ਰਿਸ਼ੀਬੋਟ ਸੋਚ ਰਿਹਾ ਹੈ...' : 'KrishiBot is thinking...'}
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}
-              <div className="messages-wrapper" ref={messagesWrapperRef}>
-                <div className="messages">
-                  {messages.map((msg) => (
-                    <div key={msg.id} className={`message ${msg.sender}`}>
-                      <div className="message-bubble">
-                        <div className="message-icon">
-                          {msg.sender === 'user' ? '👤' : '🌾'}
-                        </div>
-                        <div
-                          className="message-content"
-                          dangerouslySetInnerHTML={{ __html: msg.html }}
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Typing Indicator */}
-                {isTyping && (
-                  <div className="typing-indicator">
-                    <div className="message bot">
-                      <div className="message-bubble">
-                        <div className="message-icon">🌾</div>
-                        <div className="message-content">
-                          <div className="typing-dots">
-                            <span />
-                            <span />
-                            <span />
-                          </div>
-                          <span className="typing-text">KrishiBot सोच रहा है...</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </main>
-
-            {/* Input Area */}
-            <div className="input-container">
-              <div className="input-wrapper">
-                <input
-                  type="text"
-                  className="question-input"
-                  value={inputValue}
-                  onChange={(e) => setInputValue(e.target.value)}
-                  onKeyDown={handleKeyPress}
-                  placeholder="अपना सवाल लिखें... | Type your question..."
-                  disabled={isTyping}
-                  autoComplete="off"
-                />
-                <button
-                  type="button"
-                  className="send-btn"
-                  onClick={() => handleSendMessage()}
-                  disabled={!inputValue.trim() || isTyping}
-                  aria-label="Send Message"
-                >
-                  <Send size={20} />
-                  <span>भेजें</span>
-                </button>
-              </div>
             </div>
           </div>
+        </main>
+
+        {/* Input Area */}
+        <div className="input-container bg-white border-t border-slate-100 p-4">
+          <div className="input-wrapper bg-slate-50 border border-slate-200 focus-within:border-emerald-500 transition-all rounded-2xl p-2 flex items-center gap-2">
+            <input
+              type="text"
+              className="question-input flex-1 bg-transparent px-3 py-2 text-sm outline-none font-medium"
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              onKeyDown={handleKeyPress}
+              placeholder={language === 'hi' ? 'अपना सवाल यहाँ लिखें...' : 'Type your question here...'}
+              disabled={isTyping}
+              autoComplete="off"
+            />
+            <button
+              type="button"
+              className="send-btn bg-emerald-600 hover:bg-emerald-700 text-white p-3 rounded-xl shadow-lg shadow-emerald-200 transition-all active:scale-95 disabled:opacity-50 disabled:scale-100 disabled:shadow-none"
+              onClick={() => handleSendMessage()}
+              disabled={!inputValue.trim() || isTyping}
+            >
+              <Send size={18} />
+            </button>
+          </div>
         </div>
+      </div>
+    </div>
       )}
 
       {/* Mic Modal */}
@@ -600,9 +622,11 @@ const ChatbotModule = ({ fullPage = false }) => {
               <span /><span /><span /><span /><span />
             </div>
             <p className="speaker-status">
-              {isSpeaking ? 'बोल रहा हूँ...' : 'बंद किया गया'}
+              {isSpeaking ? (language === 'hi' ? 'बोल रहा हूँ...' : language === 'pa' ? 'ਬੋਲ ਰਿਹਾ ਹਾਂ...' : 'Speaking...') : (language === 'hi' ? 'बंद किया गया' : 'Stopped')}
             </p>
-            <p className="speaker-hint">KrishiBot का जवाब सुनाया जा रहा है</p>
+            <p className="speaker-hint">
+              {language === 'hi' ? 'कृषिबॉट का जवाब सुनाया जा रहा है' : language === 'pa' ? 'ਕ੍ਰਿਸ਼ੀਬੋਟ ਦਾ ਜਵਾਬ ਸੁਣਾਇਆ ਜਾ ਰਿਹਾ ਹੈ' : "KrishiBot's response is being played"}
+            </p>
           </div>
           <div className="krishibot-modal-footer">
             <button type="button" className="cancel-btn" onClick={closeSpeakerModal}>

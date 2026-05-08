@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import  { useContext, useState } from 'react';
 import { LayoutDashboard, Camera, Sprout, History, LogOut, Leaf, X } from 'lucide-react';
 import { LanguageContext } from '../../App';
 
@@ -64,7 +64,7 @@ const Sidebar = ({ activeTab, setActiveTab, onLogout }) => {
         <div className="p-4 border-t border-emerald-600/30">
           <button 
             onClick={handleLogoutClick}
-            className="w-full flex items-center gap-3 px-4 py-3 text-emerald-200 hover:bg-red-500/20 hover:text-red-300 rounded-xl text-sm font-semibold transition-all group"
+            className="w-full flex items-center gap-3 px-4 py-3 text-red-300 hover:bg-red-500/20 hover:text-red-200 rounded-xl text-sm font-semibold transition-all group"
           >
             <LogOut size={20} className="group-hover:-translate-x-1 transition-transform" />
             {t('common.logout')}
