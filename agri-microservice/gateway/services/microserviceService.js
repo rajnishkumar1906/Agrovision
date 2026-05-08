@@ -142,9 +142,16 @@ export const checkServiceHealth = async () => {
 };
 
 // Get History from History Service
-export const getHistory = async (userId) => {
+export const getHistory = async (userId, params = {}) => {
   try {
-    const response = await axios.get(`${HISTORY_SERVICE_URL}/history/${userId}`, {
+    const { action, search, limit, page } = params;
+    const url = new URL(`${HISTORY_SERVICE_URL}/history/${userId}`);
+    if (action) url.searchParams.append('action', action);
+    if (search) url.searchParams.append('search', search);
+    if (limit) url.searchParams.append('limit', limit);
+    if (page) url.searchParams.append('page', page);
+
+    const response = await axios.get(url.toString(), {
       timeout: 10000,
     });
     return response.data;

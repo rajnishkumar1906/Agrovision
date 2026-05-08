@@ -139,12 +139,18 @@ const Dashboard = ({ onLogout, initialTab = 'dashboard' }) => {
                               </div>
                               <div>
                                 <p className="text-sm font-semibold text-slate-700">
-                                  {item.action === 'DISEASE_DETECTION' ? t('nav.diseaseDetect') : t('nav.cropGuide')}
-                                </p>
-                                <p className="text-xs text-slate-400">
                                   {item.action === 'DISEASE_DETECTION' 
-                                    ? `Result: ${item.details?.result?.disease || 'Unknown'}` 
-                                    : `Suggested: ${item.details?.result?.recommended_crop || 'Unknown'}`}
+                                    ? t('nav.diseaseDetect') 
+                                    : item.action === 'CROP_RECOMMENDATION' 
+                                      ? t('nav.cropGuide')
+                                      : 'KrishiBot'}
+                                </p>
+                                <p className="text-xs text-slate-400 line-clamp-1">
+                                  {item.action === 'DISEASE_DETECTION' 
+                                    ? `Result: ${item.details?.result?.disease_translated || item.details?.result?.disease || 'Unknown'}` 
+                                    : item.action === 'CROP_RECOMMENDATION'
+                                      ? `Suggested: ${item.details?.result?.recommended_crop || 'Unknown'}`
+                                      : `Q: ${item.details?.query || 'Chat'}`}
                                 </p>
                               </div>
                             </div>

@@ -212,7 +212,8 @@ export const getHistory = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Missing userId in token' });
     }
 
-    const responseData = await getHistoryService(userId);
+    const { action, search, limit, page } = req.query;
+    const responseData = await getHistoryService(userId, { action, search, limit, page });
 
     return res.status(200).json({ success: true, data: responseData });
   } catch (error) {

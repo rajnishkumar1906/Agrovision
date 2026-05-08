@@ -1,153 +1,187 @@
-import os
-import google.generativeai as genai
-from typing import Optional
-import asyncio
-from concurrent.futures import ThreadPoolExecutor
+import logging
 
-# Configure Gemini
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-if GEMINI_API_KEY:
-    genai.configure(api_key=GEMINI_API_KEY)
-    gemini_model = genai.GenerativeModel('gemini-1.5-flash')
-else:
-    gemini_model = None
-    print("⚠️ GEMINI_API_KEY not set. Translation will use fallback.")
+# Configure logging
+logger = logging.getLogger(__name__)
 
-# Cache for translations
-_translation_cache = {}
+# Comprehensive translation dictionary for all 38 disease classes
+# Format: { 'disease_key': { 'hi': 'Hindi Translation', 'pa': 'Punjabi Translation' } }
+DISEASE_TRANSLATIONS = {
+    'Apple___Apple_scab': {
+        'hi': 'सेब की पपड़ी',
+        'pa': 'ਸੇਬ ਦੀ ਖੁਰਕ'
+    },
+    'Apple___Black_rot': {
+        'hi': 'सेब का काला सड़न',
+        'pa': 'ਸੇਬ ਦਾ ਕਾਲਾ ਸੜਨ'
+    },
+    'Apple___Cedar_apple_rust': {
+        'hi': 'सेब का जंग रोग',
+        'pa': 'ਸੇਬ ਦਾ ਜੰਗ ਰੋਗ'
+    },
+    'Apple___healthy': {
+        'hi': 'सेब - स्वस्थ',
+        'pa': 'ਸੇਬ - ਤੰਦਰੁਸਤ'
+    },
+    'Blueberry___healthy': {
+        'hi': 'ब्लूबेरी - स्वस्थ',
+        'pa': 'ਬਲੂਬੇਰੀ - ਤੰਦਰੁਸਤ'
+    },
+    'Cherry_(including_sour)___Powdery_mildew': {
+        'hi': 'चेरी - चूर्णिल आसिता',
+        'pa': 'ਚੈਰੀ - ਪਾਊਡਰੀ ਫ਼ਫੂੰਦੀ'
+    },
+    'Cherry_(including_sour)___healthy': {
+        'hi': 'चेरी - स्वस्थ',
+        'pa': 'ਚੈਰੀ - ਤੰਦਰੁਸਤ'
+    },
+    'Corn_(maize)___Cercospora_leaf_spot Gray_leaf_spot': {
+        'hi': 'मक्का - स्लेटी पत्ता धब्बा',
+        'pa': 'ਮੱਕੀ - ਸਲੇਟੀ ਪੱਤਾ ਧੱਬਾ'
+    },
+    'Corn_(maize)___Common_rust_': {
+        'hi': 'मक्का - सामान्य जंग',
+        'pa': 'ਮੱਕੀ - ਆਮ ਜੰਗ'
+    },
+    'Corn_(maize)___Northern_Leaf_Blight': {
+        'hi': 'मक्का - उत्तरी पत्ती झुलसा',
+        'pa': 'ਮੱਕੀ - ਉੱਤਰੀ ਪੱਤਾ ਝੁਲਸ'
+    },
+    'Corn_(maize)___healthy': {
+        'hi': 'मक्का - स्वस्थ',
+        'pa': 'ਮੱਕੀ - ਤੰਦਰੁਸਤ'
+    },
+    'Grape___Black_rot': {
+        'hi': 'अंगूर - काला सड़न',
+        'pa': 'ਅੰਗੂਰ - ਕਾਲਾ ਸੜਨ'
+    },
+    'Grape___Esca_(Black_Measles)': {
+        'hi': 'अंगूर - एस्का रोग (काला खसरा)',
+        'pa': 'ਅੰਗੂਰ - ਏਸਕਾ ਰੋਗ (ਕਾਲਾ ਖਸਰਾ)'
+    },
+    'Grape___Leaf_blight_(Isariopsis_Leaf_Spot)': {
+        'hi': 'अंगूर - पत्ती झुलसा',
+        'pa': 'ਅੰਗੂਰ - ਪੱਤਾ ਝੁਲਸ'
+    },
+    'Grape___healthy': {
+        'hi': 'अंगूर - स्वस्थ',
+        'pa': 'ਅੰਗੂਰ - ਤੰਦਰੁਸਤ'
+    },
+    'Orange___Haunglongbing_(Citrus_greening)': {
+        'hi': 'संतरा - सिट्रस ग्रीनिंग (हरापन रोग)',
+        'pa': 'ਸੰਤਰਾ - ਸਿਟਰਸ ਗ੍ਰੀਨਿੰਗ (ਹਰਾਪਣ ਰੋਗ)'
+    },
+    'Peach___Bacterial_spot': {
+        'hi': 'आड़ू - जीवाणु धब्बा',
+        'pa': 'ਆੜੂ - ਬੈਕਟੀਰੀਆ ਧੱਬਾ'
+    },
+    'Peach___healthy': {
+        'hi': 'आड़ू - स्वस्थ',
+        'pa': 'ਆੜੂ - ਤੰਦਰੁਸਤ'
+    },
+    'Pepper,_bell___Bacterial_spot': {
+        'hi': 'शिमला मिर्च - जीवाणु धब्बा',
+        'pa': 'ਸ਼ਿਮਲਾ ਮਿਰਚ - ਬੈਕਟੀਰੀਆ ਧੱਬਾ'
+    },
+    'Pepper,_bell___healthy': {
+        'hi': 'शिमला मिर्च - स्वस्थ',
+        'pa': 'ਸ਼ਿਮਲਾ ਮਿਰਚ - ਤੰਦਰੁਸਤ'
+    },
+    'Potato___Early_blight': {
+        'hi': 'आलू - प्रारंभिक झुलसा',
+        'pa': 'ਆਲੂ - ਸ਼ੁਰੂਆਤੀ ਝੁਲਸ'
+    },
+    'Potato___Late_blight': {
+        'hi': 'आलू - अंतिम झुलसा',
+        'pa': 'ਆਲੂ - ਅੰਤਮ ਝੁਲਸ'
+    },
+    'Potato___healthy': {
+        'hi': 'आलू - स्वस्थ',
+        'pa': 'ਆਲੂ - ਤੰਦਰੁਸਤ'
+    },
+    'Raspberry___healthy': {
+        'hi': 'रसभरी - स्वस्थ',
+        'pa': 'ਰਸਬੇਰੀ - ਤੰਦਰੁਸਤ'
+    },
+    'Soybean___healthy': {
+        'hi': 'सोयाबीन - स्वस्थ',
+        'pa': 'ਸੋਇਆਬੀਨ - ਤੰਦਰੁਸਤ'
+    },
+    'Squash___Powdery_mildew': {
+        'hi': 'कद्दू - चूर्णिल आसिता',
+        'pa': 'ਕੱਦੂ - ਪਾਊਡਰੀ ਫ਼ਫੂੰਦੀ'
+    },
+    'Strawberry___Leaf_scorch': {
+        'hi': 'स्ट्रॉबेरी - पत्ती जलन',
+        'pa': 'ਸਟ੍ਰਾਬੇਰੀ - ਪੱਤਾ ਜਲਨ'
+    },
+    'Strawberry___healthy': {
+        'hi': 'स्ट्रॉबेरी - स्वस्थ',
+        'pa': 'ਸਟ੍ਰਾਬੇਰੀ - ਤੰਦਰੁਸਤ'
+    },
+    'Tomato___Bacterial_spot': {
+        'hi': 'टमाटर - जीवाणु धब्बा',
+        'pa': 'ਟਮਾਟਰ - ਬੈਕਟੀਰੀਆ ਧੱਬਾ'
+    },
+    'Tomato___Early_blight': {
+        'hi': 'टमाटर - प्रारंभिक झुलसा',
+        'pa': 'ਟਮਾਟਰ - ਸ਼ੁਰੂਆਤੀ ਝੁਲਸ'
+    },
+    'Tomato___Late_blight': {
+        'hi': 'टमाटर - अंतिम झुलसा',
+        'pa': 'ਟਮਾਟਰ - ਅੰਤਮ ਝੁਲਸ'
+    },
+    'Tomato___Leaf_Mold': {
+        'hi': 'टमाटर - पत्ती फफूंद',
+        'pa': 'ਟਮਾਟਰ - ਪੱਤਾ ਫ਼ਫੂੰਦੀ'
+    },
+    'Tomato___Septoria_leaf_spot': {
+        'hi': 'टमाटर - सेप्टोरिया पत्ती धब्बा',
+        'pa': 'ਟਮਾਟਰ - ਸੈਪਟੋਰੀਆ ਪੱਤਾ ਧੱਬਾ'
+    },
+    'Tomato___Spider_mites Two-spotted_spider_mite': {
+        'hi': 'टमाटर - मकड़ी घुन',
+        'pa': 'ਟਮਾਟਰ - ਮੱਕੜੀ ਘੁਣ'
+    },
+    'Tomato___Target_Spot': {
+        'hi': 'टमाटर - लक्ष्य धब्बा',
+        'pa': 'ਟਮਾਟਰ - ਟਾਰਗੇਟ ਧੱਬਾ'
+    },
+    'Tomato___Tomato_Yellow_Leaf_Curl_Virus': {
+        'hi': 'टमाटर - पीला पत्ती कर्ल वायरस',
+        'pa': 'ਟਮਾਟਰ - ਪੀਲਾ ਪੱਤਾ ਕਰਲ ਵਾਇਰਸ'
+    },
+    'Tomato___Tomato_mosaic_virus': {
+        'hi': 'टमाटर - मोज़ेक वायरस',
+        'pa': 'ਟਮਾਟਰ - ਮੋਜ਼ੇਕ ਵਾਇਰਸ'
+    },
+    'Tomato___healthy': {
+        'hi': 'टमाटर - स्वस्थ',
+        'pa': 'ਟਮਾਟਰ - ਤੰਦਰੁਸਤ'
+    }
+}
 
 def translate_disease_sync(disease_key: str, target_language: str) -> str:
-    """Synchronous translation using Gemini"""
+    """Dictionary-based translation for disease names"""
     if not disease_key:
         return "Unknown"
     
-    # Check cache
-    cache_key = f"{disease_key}_{target_language}"
-    if cache_key in _translation_cache:
-        return _translation_cache[cache_key]
-    
-    # Parse disease key (format: "Crop___DiseaseName")
-    parts = disease_key.split('___')
-    crop = parts[0] if parts else ""
-    disease_name = parts[1].replace('_', ' ') if len(parts) > 1 else disease_key
-    
-    # Language mapping
-    lang_map = {
-        'en': 'English',
-        'hi': 'Hindi', 
-        'pa': 'Punjabi'
-    }
-    target_lang = lang_map.get(target_language, 'English')
-    
-    # For English, just format nicely
+    # For English, format nicely from the key
     if target_language == 'en':
-        result = disease_name.title()
-        _translation_cache[cache_key] = result
-        return result
+        parts = disease_key.split('___')
+        disease_name = parts[1].replace('_', ' ') if len(parts) > 1 else disease_key
+        return disease_name.title()
     
-    # If Gemini is not available, use fallback
-    if not gemini_model:
-        return _fallback_translation(disease_name, target_language)
+    # Check if we have a direct translation in our dictionary
+    if disease_key in DISEASE_TRANSLATIONS:
+        lang_translations = DISEASE_TRANSLATIONS[disease_key]
+        if target_language in lang_translations:
+            return lang_translations[target_language]
     
-    prompt = f"""Translate this plant disease name to {target_lang}. Return ONLY the translation, nothing else.
-
-Disease: {disease_name}
-
-Examples:
-- "Apple Scab" in Hindi: "सेब की पपड़ी"
-- "Early Blight" in Hindi: "प्रारंभिक झुलसा"
-- "Late Blight" in Punjabi: "ਅੰਤਮ ਝੁਲਸ"
-- "healthy" in Hindi: "स्वस्थ"
-
-Translate: {disease_name}"""
-    
-    try:
-        response = gemini_model.generate_content(prompt)
-        translated = response.text.strip()
-        _translation_cache[cache_key] = translated
-        return translated
-    except Exception as e:
-        print(f"Gemini translation error: {e}")
-        return _fallback_translation(disease_name, target_language)
-
+    # Fallback: remove underscores and title case
+    parts = disease_key.split('___')
+    disease_name = parts[1].replace('_', ' ') if len(parts) > 1 else disease_key
+    return disease_name.title()
 
 async def translate_disease(disease_key: str, target_language: str) -> str:
-    """Async wrapper for translation"""
-    loop = asyncio.get_event_loop()
-    with ThreadPoolExecutor() as executor:
-        result = await loop.run_in_executor(
-            executor, 
-            translate_disease_sync, 
-            disease_key, 
-            target_language
-        )
-    return result
-
-
-def _fallback_translation(disease_name: str, target_language: str) -> str:
-    """Fallback translations when Gemini is unavailable"""
-    fallbacks = {
-        'hi': {
-            'Apple Scab': 'सेब की पपड़ी',
-            'Apple Black Rot': 'सेब का काला सड़न',
-            'Cedar Apple Rust': 'सेब का जंग रोग',
-            'healthy': 'स्वस्थ',
-            'Early Blight': 'प्रारंभिक झुलसा',
-            'Late Blight': 'अंतिम झुलसा',
-            'Bacterial spot': 'जीवाणु धब्बा',
-            'Powdery mildew': 'चूर्णिल आसिता',
-            'Leaf Mold': 'पत्ती फफूंद',
-            'Target Spot': 'लक्ष्य धब्बा',
-            'Mosaic Virus': 'मोज़ेक वायरस',
-            'Yellow Leaf Curl Virus': 'पीला पत्ती कर्ल वायरस',
-            'Septoria leaf spot': 'सेप्टोरिया पत्ती धब्बा',
-            'Spider mites': 'मकड़ी घुन',
-            'Gray leaf spot': 'स्लेटी पत्ता धब्बा',
-            'Common rust': 'सामान्य जंग',
-            'Northern Leaf Blight': 'उत्तरी पत्ती झुलसा',
-            'Black rot': 'काला सड़न',
-            'Esca': 'एस्का रोग',
-            'Leaf blight': 'पत्ती झुलसा',
-            'Haunglongbing': 'हरापन रोग',
-            'Citrus greening': 'सिट्रस ग्रीनिंग',
-            'Leaf scorch': 'पत्ती जलन'
-        },
-        'pa': {
-            'Apple Scab': 'ਸੇਬ ਦੀ ਖੁਰਕ',
-            'Apple Black Rot': 'ਸੇਬ ਦਾ ਕਾਲਾ ਸੜਨ',
-            'Cedar Apple Rust': 'ਸੇਬ ਦਾ ਜੰਗ ਰੋਗ',
-            'healthy': 'ਤੰਦਰੁਸਤ',
-            'Early Blight': 'ਸ਼ੁਰੂਆਤੀ ਝੁਲਸ',
-            'Late Blight': 'ਅੰਤਮ ਝੁਲਸ',
-            'Bacterial spot': 'ਬੈਕਟੀਰੀਆ ਧੱਬਾ',
-            'Powdery mildew': 'ਪਾਊਡਰੀ ਫ਼ਫੂੰਦੀ',
-            'Leaf Mold': 'ਪੱਤਾ ਫ਼ਫੂੰਦੀ',
-            'Target Spot': 'ਟਾਰਗੇਟ ਧੱਬਾ',
-            'Mosaic Virus': 'ਮੋਜ਼ੇਕ ਵਾਇਰਸ',
-            'Yellow Leaf Curl Virus': 'ਪੀਲਾ ਪੱਤਾ ਕਰਲ ਵਾਇਰਸ',
-            'Septoria leaf spot': 'ਸੈਪਟੋਰੀਆ ਪੱਤਾ ਧੱਬਾ',
-            'Spider mites': 'ਮੱਕੜੀ ਘੁਣ',
-            'Gray leaf spot': 'ਸਲੇਟੀ ਪੱਤਾ ਧੱਬਾ',
-            'Common rust': 'ਆਮ ਜੰਗ',
-            'Northern Leaf Blight': 'ਉੱਤਰੀ ਪੱਤਾ ਝੁਲਸ',
-            'Black rot': 'ਕਾਲਾ ਸੜਨ',
-            'Esca': 'ਏਸਕਾ ਰੋਗ',
-            'Leaf blight': 'ਪੱਤਾ ਝੁਲਸ',
-            'Haunglongbing': 'ਹਰਾਪਣ ਰੋਗ',
-            'Citrus greening': 'ਸਿਟਰਸ ਗ੍ਰੀਨਿੰਗ',
-            'Leaf scorch': 'ਪੱਤਾ ਜਲਨ'
-        }
-    }
-    
-    # Try exact match
-    if target_language in fallbacks:
-        if disease_name in fallbacks[target_language]:
-            return fallbacks[target_language][disease_name]
-    
-    # Try partial match
-    for key, value in fallbacks.get(target_language, {}).items():
-        if key.lower() in disease_name.lower() or disease_name.lower() in key.lower():
-            return value
-    
-    # Return original with underscores removed
-    return disease_name.replace('_', ' ').title()
+    """Async wrapper for compatibility"""
+    return translate_disease_sync(disease_key, target_language)

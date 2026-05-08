@@ -112,6 +112,14 @@ async def ask_voice(
         # Convert speech to text
         query = voice_service.process_audio(temp_audio_path)
         
+        if query == "ERROR_FFMPEG_MISSING":
+            return {
+                "success": False,
+                "status": "error",
+                "message": "Voice processing is temporarily unavailable on this server (FFmpeg missing). Please use text chat instead.",
+                "data": {"status": "error"}
+            }
+            
         if not query:
             raise HTTPException(status_code=400, detail="Could not understand audio")
         

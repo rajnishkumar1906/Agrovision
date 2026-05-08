@@ -17,7 +17,7 @@ const CropRecommendationModule = ({ weatherData, fullPage }) => {
   const [locationName, setLocationName] = useState('');
   const [soilData, setSoilData] = useState(null);
   const token = useAuthStore((state) => state.token);
-  const { t } = useContext(LanguageContext);
+  const { t, language } = useContext(LanguageContext);
 
   // Function to get soil data based on location (you can replace with actual API)
   const getSoilDataForLocation = async (latitude, longitude) => {
@@ -179,12 +179,17 @@ const CropRecommendationModule = ({ weatherData, fullPage }) => {
     setError('');
 
     try {
+      // Ensure we have the language code
+      const langCode = language?.code || language || 'en';
+      
       const payload = {
         ...Object.fromEntries(
           Object.entries(formData).map(([key, val]) => [key, parseFloat(val)])
         ),
-        language: language // Pass current language to backend
+        language: langCode
       };
+
+      console.log('Sending recommendation request:', payload);
 
       const response = await fetch(`${API_BASE_URL}/api/recommend`, {
         method: 'POST',
@@ -195,14 +200,18 @@ const CropRecommendationModule = ({ weatherData, fullPage }) => {
         body: JSON.stringify(payload)
       });
 
+      console.log('Response status:', response.status);
       const data = await response.json();
+      console.log('Response data:', data);
+
       if (data.success) {
         setResult(data.data);
       } else {
         setError(data.message || 'Failed to get recommendation');
       }
     } catch (err) {
-      setError('Server connection failed');
+      console.error('Fetch error:', err);
+      setError(`Connection failed: ${err.message}`);
     } finally {
       setLoading(false);
     }
