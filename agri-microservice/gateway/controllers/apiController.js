@@ -246,13 +246,19 @@ export const askChatbot = async (req, res) => {
     // Fire-and-forget audit log
     try {
       const userId = req.user?.userId;
-      const details = {
-        query,
-        route: '/api/chatbot/ask-text',
-        result: responseData,
-      };
-      logActivity(userId, 'CHATBOT_QUERY', details);
-    } catch (_) { /* swallow */ }
+      if (userId) {
+        const details = {
+          query,
+          language,
+          gender,
+          route: '/api/chatbot/ask-text',
+          result: responseData,
+        };
+        logActivity(userId, 'CHATBOT_QUERY', details);
+      }
+    } catch (logError) {
+      console.error('[Gateway] Failed to log text chatbot activity:', logError.message);
+    }
 
     // Ensure response matches frontend expected format
     return res.status(200).json({
@@ -306,6 +312,24 @@ export const askChatbotVoice = async (req, res) => {
     const responseData = await forwardChatbotVoice(formData, language, gender);
 
     console.log('✅ Voice response received from KrishiBot');
+
+    // Fire-and-forget audit log
+    try {
+      const userId = req.user?.userId;
+      if (userId) {
+        const details = {
+          route: '/api/chatbot/ask-voice',
+          language,
+          gender,
+          result: responseData,
+          // Extract query from response if available
+          query: responseData.query || responseData.data?.query
+        };
+        logActivity(userId, 'CHATBOT_QUERY', details);
+      }
+    } catch (logError) {
+      console.error('[Gateway] Failed to log voice chatbot activity:', logError.message);
+    }
 
     return res.status(200).json({
       success: true,

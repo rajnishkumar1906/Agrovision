@@ -7,7 +7,7 @@ const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL || 'http://auth:4001';
 const CROP_RECOMMENDATION_URL = process.env.CROP_RECOMMENDATION_URL || 'http://croprec:8001';
 const HISTORY_SERVICE_URL = process.env.HISTORY_SERVICE_URL || 'http://history:8003';
 const DISEASE_DETECTION_URL = process.env.DISEASE_DETECTION_URL || 'http://disease:8002';
-const KRISHIBOT_URL = process.env.KRISHIBOT_SERVICE_URL || 'http://krishibot:8003';
+const KRISHIBOT_URL = process.env.KRISHIBOT_SERVICE_URL || 'http://krishibot:8004';
 
 // Forward to Auth Service - Register
 export const registerUser = async (userData) => {
@@ -131,10 +131,14 @@ export const checkServiceHealth = async () => {
   try {
     const cropStatus = await axios.get(`${CROP_RECOMMENDATION_URL}/`, { timeout: 5000 }).catch(() => null);
     const diseaseStatus = await axios.get(`${DISEASE_DETECTION_URL}/`, { timeout: 5000 }).catch(() => null);
+    const historyStatus = await axios.get(`${HISTORY_SERVICE_URL}/`, { timeout: 5000 }).catch(() => null);
+    const krishibotStatus = await axios.get(`${KRISHIBOT_URL}/`, { timeout: 5000 }).catch(() => null);
 
     return {
       cropRecommendation: cropStatus ? 'UP' : 'DOWN',
       diseaseDetection: diseaseStatus ? 'UP' : 'DOWN',
+      history: historyStatus ? 'UP' : 'DOWN',
+      krishibot: krishibotStatus ? 'UP' : 'DOWN',
     };
   } catch (error) {
     throw error;

@@ -15,16 +15,16 @@ if __name__ == "__main__":
     print("=" * 50)
     print(" KrishiBot Starting...")
     print("=" * 50)
-    print(f" API will be available at: http://localhost:8000")
-    print(f" Text endpoint: http://localhost:8000/api/ask-text")
-    print(f" Voice endpoint: http://localhost:8000/api/ask-voice")
-    print(f" Health check: http://localhost:8000/api/health")
+    print(f" API will be available at: http://localhost:8004")
+    print(f" Text endpoint: http://localhost:8004/api/ask-text")
+    print(f" Voice endpoint: http://localhost:8004/api/ask-voice")
+    print(f" Health check: http://localhost:8004/api/health")
     print("=" * 50)
     
     uvicorn.run(
         "main:app",
-        host="127.0.0.1",
-        port=8000,
+        host="0.0.0.0",
+        port=8004,
         reload=True,
         log_level="info"
     )

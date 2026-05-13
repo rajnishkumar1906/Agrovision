@@ -208,7 +208,20 @@ const ChatbotModule = ({ fullPage = false }) => {
             currentAudioRef.current.pause();
           }
           currentAudioRef.current = new Audio(audioUrl);
-          currentAudioRef.current.play();
+          
+          setIsSpeaking(true);
+          setIsSpeakerModalOpen(true);
+
+          currentAudioRef.current.onended = () => {
+            setIsSpeaking(false);
+            setIsSpeakerModalOpen(false);
+          };
+
+          currentAudioRef.current.play().catch(err => {
+            console.error('Audio playback failed:', err);
+            // Fallback to TTS if audio file fails
+            speakText(answer);
+          });
         } else {
           // Fallback to TTS
           speakText(answer);
@@ -267,12 +280,16 @@ const ChatbotModule = ({ fullPage = false }) => {
 
       // Extract answer from different response formats
       let answer = null;
+      let audio_file = null;
       if (data.success && data.data) {
         answer = data.data.answer || data.data.response;
+        audio_file = data.data.audio_file;
       } else if (data.status === 'success') {
         answer = data.answer;
+        audio_file = data.audio_file;
       } else if (data.answer) {
         answer = data.answer;
+        audio_file = data.audio_file;
       }
 
       if (answer) {
@@ -284,7 +301,32 @@ const ChatbotModule = ({ fullPage = false }) => {
         };
         setMessages(prev => [...prev, botMessage]);
         setLastBotAnswer(answer);
-        speakText(answer);
+
+        // Play audio response if available
+        if (audio_file) {
+          const audioUrl = `${API_BASE_URL}/api/chatbot/audio/${audio_file.split('/').pop()}`;
+          if (currentAudioRef.current) {
+            currentAudioRef.current.pause();
+          }
+          currentAudioRef.current = new Audio(audioUrl);
+          
+          setIsSpeaking(true);
+          setIsSpeakerModalOpen(true);
+
+          currentAudioRef.current.onended = () => {
+            setIsSpeaking(false);
+            setIsSpeakerModalOpen(false);
+          };
+
+          currentAudioRef.current.play().catch(err => {
+            console.error('Audio playback failed:', err);
+            // Fallback to TTS if audio file fails
+            speakText(answer);
+          });
+        } else {
+          // Fallback to TTS
+          speakText(answer);
+        }
       } else {
         throw new Error('No answer received from server');
       }

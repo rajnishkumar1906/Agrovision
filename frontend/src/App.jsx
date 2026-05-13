@@ -1,8 +1,8 @@
-import React, { useState, useEffect, createContext } from 'react';
+import  { useState, useEffect, createContext } from 'react';
 import Dashboard from './pages/Dashboard';
 import AuthPage from './pages/AuthPage';
 import LandingPage from './pages/LandingPage';
-import SplashScreen from './components/common/SplashScreen';
+import SplashScreen from './components/SplashScreen/SplashScreen';
 import useAuthStore from './store/useAuthStore';
 import useLanguageStore from './store/useLanguageStore';
 import { useTranslation } from 'react-i18next';
@@ -53,31 +53,34 @@ function App() {
 
   return (
     <LanguageContext.Provider value={contextValue}>
-      {showSplash && <SplashScreen onFinish={() => setShowSplash(false)} />}
-      <div className={`min-h-screen bg-slate-50 font-sans text-slate-900 ${showSplash ? 'hidden' : ''}`}>
-        {currentPage === 'landing' && (
-          <LandingPage 
-            onNavigate={handleNavigate} 
-          />
-        )}
-        
-        {(currentPage === 'login' || currentPage === 'register') && (
-          <AuthPage 
-            type={currentPage}
-            onBack={() => setCurrentPage('landing')}
-            onSuccess={handleAuthSuccess}
-            onNavigate={handleNavigate}
-          />
-        )}
-        
-        {(currentPage === 'dashboard' || currentPage === 'disease' || currentPage === 'crop' || currentPage === 'history') && (
-          <Dashboard 
-            onLogout={handleLogout}
-            onNavigate={handleNavigate}
-            initialTab={currentPage === 'dashboard' ? 'dashboard' : currentPage}
-          />
-        )}
-      </div>
+      {showSplash ? (
+        <SplashScreen onFinish={() => setShowSplash(false)} />
+      ) : (
+        <div className="min-h-screen bg-slate-50 font-sans text-slate-900 animate-fade-in">
+          {currentPage === 'landing' && (
+            <LandingPage 
+              onNavigate={handleNavigate} 
+            />
+          )}
+          
+          {(currentPage === 'login' || currentPage === 'register') && (
+            <AuthPage 
+              type={currentPage}
+              onBack={() => setCurrentPage('landing')}
+              onSuccess={handleAuthSuccess}
+              onNavigate={handleNavigate}
+            />
+          )}
+          
+          {(currentPage === 'dashboard' || currentPage === 'disease' || currentPage === 'crop' || currentPage === 'history') && (
+            <Dashboard 
+              onLogout={handleLogout}
+              onNavigate={handleNavigate}
+              initialTab={currentPage === 'dashboard' ? 'dashboard' : currentPage}
+            />
+          )}
+        </div>
+      )}
     </LanguageContext.Provider>
   );
 }

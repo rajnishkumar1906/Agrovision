@@ -34,47 +34,63 @@ const Sidebar = ({ activeTab, setActiveTab, onLogout }) => {
 
   return (
     <>
-      <aside className="hidden md:flex flex-col w-20 lg:w-64 bg-gradient-to-b from-emerald-700 to-emerald-900 border-r border-emerald-800 h-full flex-shrink-0 transition-all duration-300 shadow-2xl overflow-hidden group/sidebar">
-        <div className="h-20 flex items-center px-6 lg:px-8 border-b border-emerald-600/30 overflow-hidden">
-          <div className="flex items-center gap-3 text-white font-bold text-xl min-w-max">
-            <img src="/agro-logo.svg" alt="Logo" className="w-8 h-8 flex-shrink-0" />
-            <span className="tracking-tight opacity-0 lg:opacity-100 lg:group-hover/sidebar:opacity-100 transition-opacity duration-300">AgroVision</span>
-          </div>
+      <aside className="hidden md:flex flex-col w-20 lg:w-64 relative border-r border-white/5 h-full flex-shrink-0 transition-all duration-300 shadow-2xl overflow-hidden group/sidebar">
+        {/* Background Image with Enhanced Transparency */}
+        <div className="absolute inset-0 z-0">
+          <img 
+            src="/sidenav_bg.png" 
+            alt="Sidebar Background" 
+            className="w-full h-full object-cover"
+          />
+          {/* Subtle overlay for text contrast without losing background image clarity */}
+          <div className="absolute inset-0 bg-black/30 backdrop-blur-[2px]"></div>
+          <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/60"></div>
         </div>
 
-        <nav className="flex-1 px-3 lg:px-4 py-6 space-y-2 overflow-y-auto custom-scrollbar">
-          {menuItems.map((item) => (
-            <button
-              key={item.id}
-              onClick={() => setActiveTab(item.id)}
-              className={`w-full flex items-center gap-3 px-3 lg:px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-300 group ${
-                activeTab === item.id
-                  ? 'bg-white text-emerald-800 shadow-xl scale-105'
-                  : 'text-emerald-100 hover:bg-white/10 hover:text-white'
-              }`}
-              title={item.label}
-            >
-              <div className={`flex-shrink-0 transition-transform duration-300 ${activeTab === item.id ? 'scale-110' : 'group-hover:scale-110'}`}>
-                {item.icon}
+        <div className="relative z-10 flex flex-col h-full">
+          <div className="h-20 flex items-center px-6 lg:px-8 border-b border-white/10 overflow-hidden">
+            <div className="flex items-center gap-3 text-white font-black text-xl min-w-max drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]">
+              <div className="p-1.5 bg-white/10 rounded-lg backdrop-blur-md border border-white/20 shadow-lg">
+                <Leaf className="w-6 h-6 text-white" />
               </div>
-              <span className="truncate opacity-0 lg:opacity-100 transition-opacity duration-300">
-                {item.label}
+              <span className="tracking-tight opacity-0 lg:opacity-100 lg:group-hover/sidebar:opacity-100 transition-opacity duration-300">AgroVision</span>
+            </div>
+          </div>
+
+          <nav className="flex-1 px-3 lg:px-4 py-6 space-y-2 overflow-y-auto custom-scrollbar">
+            {menuItems.map((item) => (
+              <button
+                key={item.id}
+                onClick={() => setActiveTab(item.id)}
+                className={`w-full flex items-center gap-3 px-3 lg:px-4 py-3 rounded-xl text-sm font-black transition-all duration-300 group drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)] ${
+                  activeTab === item.id
+                    ? 'bg-white/20 text-white shadow-2xl scale-105 backdrop-blur-xl border border-white/30'
+                    : 'text-white/90 hover:bg-white/10 hover:text-white'
+                }`}
+                title={item.label}
+              >
+                <div className={`flex-shrink-0 transition-transform duration-300 ${activeTab === item.id ? 'scale-110' : 'group-hover:scale-110'}`}>
+                  {item.icon}
+                </div>
+                <span className="truncate opacity-0 lg:opacity-100 transition-opacity duration-300 tracking-wide">
+                  {item.label}
+                </span>
+              </button>
+            ))}
+          </nav>
+
+          <div className="p-3 lg:p-4 border-t border-white/10">
+            <button 
+              onClick={handleLogoutClick}
+              className="w-full flex items-center gap-3 px-3 lg:px-4 py-3 text-red-100 hover:bg-red-500/20 hover:text-white rounded-xl text-sm font-black transition-all group drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]"
+              title={t('common.logout')}
+            >
+              <LogOut size={20} className="flex-shrink-0 group-hover:-translate-x-1 transition-transform" />
+              <span className="opacity-0 lg:opacity-100 transition-opacity duration-300 tracking-wide">
+                {t('common.logout')}
               </span>
             </button>
-          ))}
-        </nav>
-
-        <div className="p-3 lg:p-4 border-t border-emerald-600/30">
-          <button 
-            onClick={handleLogoutClick}
-            className="w-full flex items-center gap-3 px-3 lg:px-4 py-3 text-red-300 hover:bg-red-500/20 hover:text-red-200 rounded-xl text-sm font-semibold transition-all group"
-            title={t('common.logout')}
-          >
-            <LogOut size={20} className="flex-shrink-0 group-hover:-translate-x-1 transition-transform" />
-            <span className="opacity-0 lg:opacity-100 transition-opacity duration-300">
-              {t('common.logout')}
-            </span>
-          </button>
+          </div>
         </div>
       </aside>
 

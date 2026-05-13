@@ -53,7 +53,33 @@ const HistoryModule = () => {
     }
     if (item.action === 'CROP_RECOMMENDATION') {
       const result = item.details?.result || {};
-      return result.recommended_crop || 'Unknown';
+      const input = item.details?.input || {};
+      return (
+        <div className="space-y-3 mt-1">
+          <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 grid grid-cols-4 gap-2">
+            <div>
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">N</p>
+              <p className="text-slate-800 font-bold">{input.N || '-'}</p>
+            </div>
+            <div>
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">P</p>
+              <p className="text-slate-800 font-bold">{input.P || '-'}</p>
+            </div>
+            <div>
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">K</p>
+              <p className="text-slate-800 font-bold">{input.K || '-'}</p>
+            </div>
+            <div>
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">pH</p>
+              <p className="text-slate-800 font-bold">{input.ph || '-'}</p>
+            </div>
+          </div>
+          <div className="bg-emerald-50/50 p-3 rounded-xl border border-emerald-100/50">
+            <p className="text-xs font-bold text-emerald-600 uppercase tracking-wider mb-1">Recommended Crop</p>
+            <p className="text-slate-700 font-bold text-lg">{result.recommended_crop || 'Unknown'}</p>
+          </div>
+        </div>
+      );
     }
     if (item.action === 'CHATBOT_QUERY') {
       const query = item.details?.query || 'No query';

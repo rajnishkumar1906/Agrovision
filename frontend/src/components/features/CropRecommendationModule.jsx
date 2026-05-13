@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import { useState, useContext } from 'react';
 import { Sprout, ChevronRight, MapPin, Loader2, Wifi, WifiOff, Droplets, Thermometer, Leaf } from 'lucide-react';
 import InputGroup from '../common/InputGroup';
 import { API_BASE_URL } from '../../config';

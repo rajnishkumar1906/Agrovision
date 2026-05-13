@@ -10,7 +10,9 @@ router = APIRouter()
 
 # Create directories
 TEMP_DIR = "temp_audio"
+AUDIO_OUTPUT_DIR = "audio_output"
 os.makedirs(TEMP_DIR, exist_ok=True)
+os.makedirs(AUDIO_OUTPUT_DIR, exist_ok=True)
 os.makedirs("static", exist_ok=True)
 
 # Initialize voice service
@@ -63,15 +65,29 @@ async def ask_text(request: Request):
         
         # Get answer from RAG pipeline
         result = rag_pipeline.run(query, preferred_language=language, gender=gender)
+        answer = result["answer"]
+        
+        # Convert answer to speech if voice service is available
+        audio_filename = None
+        if voice_service:
+            try:
+                voice_service.set_language(language)
+                temp_id = str(uuid.uuid4())
+                audio_filename = f"{temp_id}_output.mp3"
+                voice_service.generate_audio(answer, audio_filename)
+            except Exception as ve:
+                logging.error(f"Voice generation failed for text query: {ve}")
         
         return {
             "success": True,
             "status": "success",
-            "answer": result["answer"],
+            "answer": answer,
             "query": query,
+            "audio_file": audio_filename,
             "data": {
-                "answer": result["answer"],
+                "answer": answer,
                 "query": query,
+                "audio_file": audio_filename,
                 "status": "success"
             }
         }
@@ -130,18 +146,19 @@ async def ask_voice(
         answer = result["answer"]
         
         # Convert answer to speech
-        audio_file = voice_service.generate_audio(answer, f"{temp_id}_output.mp3")
+        audio_filename = f"{temp_id}_output.mp3"
+        voice_service.generate_audio(answer, audio_filename)
         
         return {
             "success": True,
             "status": "success",
             "query": query,
             "answer": answer,
-            "audio_file": audio_file,
+            "audio_file": audio_filename,
             "data": {
                 "query": query,
                 "answer": answer,
-                "audio_file": audio_file,
+                "audio_file": audio_filename,
                 "status": "success"
             }
         }
@@ -161,11 +178,22 @@ async def ask_voice(
 @router.get("/audio/{filename}")
 def get_audio(filename: str):
     """Get generated audio file"""
-    audio_path = os.path.join(TEMP_DIR, filename)
-    if not os.path.exists(audio_path):
-        audio_path = os.path.join("static", filename)
+    # Check all possible locations for the audio file
+    search_paths = [
+        os.path.join(TEMP_DIR, filename),
+        os.path.join(AUDIO_OUTPUT_DIR, filename),
+        os.path.join("static", filename),
+        filename  # maybe it's a full path
+    ]
     
-    if not os.path.exists(audio_path):
+    audio_path = None
+    for path in search_paths:
+        if os.path.exists(path) and os.path.isfile(path):
+            audio_path = path
+            break
+    
+    if not audio_path:
+        logging.error(f"Audio not found: {filename}. Searched in: {search_paths}")
         raise HTTPException(status_code=404, detail="Audio not found")
     
     return FileResponse(audio_path, media_type="audio/mpeg")

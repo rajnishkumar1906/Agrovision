@@ -65,12 +65,17 @@ app.get('/history/:userId', async (req, res) => {
     
     // Add text search if provided
     if (search) {
+      const searchRegex = { $regex: search, $options: 'i' };
       query.$or = [
-        { 'details.query': { $regex: search, $options: 'i' } },
-        { 'details.result.disease': { $regex: search, $options: 'i' } },
-        { 'details.result.disease_translated': { $regex: search, $options: 'i' } },
-        { 'details.result.recommended_crop': { $regex: search, $options: 'i' } },
-        { 'details.result.answer': { $regex: search, $options: 'i' } }
+        { 'details.query': searchRegex },
+        { 'details.result.disease': searchRegex },
+        { 'details.result.disease_translated': searchRegex },
+        { 'details.result.recommended_crop': searchRegex },
+        { 'details.result.answer': searchRegex },
+        { 'details.input.N': searchRegex },
+        { 'details.input.P': searchRegex },
+        { 'details.input.K': searchRegex },
+        { 'details.input.label': searchRegex }
       ];
     }
 
