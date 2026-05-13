@@ -401,3 +401,57 @@
   opacity: 1;
   transform: translateX(0);
 }
+
+/* Modal and Animation Enhancements */
+.krishibot-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.krishibot-modal.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+@keyframes float-particle {
+  0% { transform: translate(0, 0) scale(0); opacity: 0; }
+  20% { opacity: 1; transform: translate(calc(var(--dx) * 0.2), calc(var(--dy) * 0.2)) scale(1); }
+  100% { transform: translate(var(--dx), var(--dy)) scale(0.5); opacity: 0; }
+}
+
+.animate-float-particle {
+  animation: float-particle 2s ease-out infinite;
+}
+
+@keyframes pulse-fast {
+  0%, 100% { transform: scale(1); opacity: 0.9; stroke-width: 6; }
+  50% { transform: scale(1.05); opacity: 1; stroke-width: 8; }
+}
+
+@keyframes pulse-slow {
+  0%, 100% { transform: scale(1); opacity: 0.6; stroke-width: 5; }
+  50% { transform: scale(1.08); opacity: 0.8; stroke-width: 7; }
+}
+
+@keyframes pulse-v-slow {
+  0%, 100% { transform: scale(1); opacity: 0.3; stroke-width: 4; }
+  50% { transform: scale(1.1); opacity: 0.5; stroke-width: 6; }
+}
+
+.animate-pulse-fast { animation: pulse-fast 1s ease-in-out infinite; }
+.animate-pulse-slow { animation: pulse-slow 1.5s ease-in-out infinite; }
+.animate-pulse-v-slow { animation: pulse-v-slow 2s ease-in-out infinite; }
+
+/* Custom Scrollbar None */
+.custom-scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+.custom-scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+

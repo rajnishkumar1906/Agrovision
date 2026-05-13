@@ -150,7 +150,7 @@ const Dashboard = ({ onLogout, initialTab = 'dashboard' }) => {
                                     ? `Result: ${item.details?.result?.disease_translated || item.details?.result?.disease || 'Unknown'}` 
                                     : item.action === 'CROP_RECOMMENDATION'
                                       ? `Suggested: ${item.details?.result?.recommended_crop || 'Unknown'}`
-                                      : `Q: ${item.details?.query || 'Chat'}`}
+                                      : `Ans: ${item.details?.response || item.details?.result?.answer || item.details?.result?.data?.answer || 'View details'}`}
                                 </p>
                               </div>
                             </div>
@@ -167,7 +167,30 @@ const Dashboard = ({ onLogout, initialTab = 'dashboard' }) => {
                   </div>
                 </div>
                 <div className="lg:col-span-1">
-                  <CropRecommendationModule weatherData={weatherData} />
+                  <div className="bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-xl shadow-slate-200/50 h-full flex flex-col justify-between relative overflow-hidden group">
+                    {/* Decorative background glow */}
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-1000"></div>
+                    
+                    <div className="relative z-10">
+                      <div className="w-16 h-16 bg-emerald-50 rounded-3xl flex items-center justify-center mb-8 shadow-sm border border-emerald-100 group-hover:rotate-12 transition-transform duration-500">
+                        <Sprout className="w-8 h-8 text-emerald-600" />
+                      </div>
+                      <h3 className="text-2xl font-black text-slate-800 mb-4 leading-tight tracking-tight">
+                        {t('nav.cropGuide')}
+                      </h3>
+                      <p className="text-slate-500 font-bold text-sm leading-relaxed mb-8">
+                        {t('dashboard.initiative.desc') || 'Get AI-powered recommendations for the best crops to grow based on your soil and location.'}
+                      </p>
+                    </div>
+                    
+                    <button 
+                      onClick={() => setActiveTab('crop')}
+                      className="relative z-10 w-full py-5 bg-emerald-600 text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-emerald-700 transition-all shadow-xl shadow-emerald-200 active:scale-95 flex items-center justify-center gap-3 group/btn"
+                    >
+                      {t('dashboard.market.seeAll') || 'Explore Tool'}
+                      <ChevronRight size={18} className="group-hover/btn:translate-x-1 transition-transform" />
+                    </button>
+                  </div>
                 </div>
               </div>
 

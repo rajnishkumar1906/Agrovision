@@ -5,16 +5,16 @@ import os
 
 class VoiceService:
 
-    def __init__(self, stt_model="openai/whisper-base", tts_lang="hi"):
+    def __init__(self, stt_model="openai/whisper-tiny", tts_lang="hi"):
         """
         Initialize voice service for KrishiBot
         Args:
-            stt_model: Whisper model for speech recognition
+            stt_model: Whisper model size (tiny, base, small, medium, large)
             tts_lang: Language for text-to-speech (hi, en, ta, etc.)
         """
         self.stt = SpeechToText(model_name=stt_model, language=tts_lang)
         self.tts = TextToSpeech(lang=tts_lang)
-        logging.info("Voice service initialized")
+        logging.info(f"Voice service initialized with STT model: {stt_model}")
 
     def process_audio(self, file_path):
         """Convert speech to text"""

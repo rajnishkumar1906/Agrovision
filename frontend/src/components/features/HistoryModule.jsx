@@ -84,7 +84,7 @@ const HistoryModule = () => {
     if (item.action === 'CHATBOT_QUERY') {
       const query = item.details?.query || 'No query';
       const result = item.details?.result || {};
-      const answer = result.answer || result.response || 'No response';
+      const answer = item.details?.response || result.answer || result.response || result.data?.answer || 'No response';
       return (
         <div className="space-y-3 mt-1">
           <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
@@ -201,17 +201,27 @@ const HistoryModule = () => {
           </div>
         ) : (
           history.map((item) => (
-            <div key={item._id} className="p-4 rounded-xl border border-slate-100 hover:bg-slate-50 transition-all hover:shadow-md">
-              <div className="flex justify-between items-start mb-2">
-                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${getBadgeStyle(item.action)}`}>
-                  {getBadgeLabel(item.action)}
-                </span>
-                <span className="text-[10px] text-slate-400 font-medium">{new Date(item.timestamp).toLocaleDateString()}</span>
-              </div>
-              <div className="flex items-start gap-3">
-                <div className="mt-1 flex-shrink-0">{getIcon(item.action)}</div>
-                <div className="text-slate-700 text-sm leading-relaxed flex-1">
-                  {getDisplayText(item)}
+            <div key={item._id} className="p-5 bg-white border border-slate-100 rounded-[2.5rem] hover:shadow-xl hover:shadow-slate-100 transition-all group animate-fade-in relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-24 h-24 bg-slate-50 rounded-full -mr-12 -mt-12 group-hover:scale-150 transition-transform duration-700"></div>
+              
+              <div className="flex flex-col md:flex-row gap-4 relative z-10">
+                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center bg-slate-50 border border-slate-100 shadow-sm group-hover:scale-110 transition-transform`}>
+                  {getIcon(item.action)}
+                </div>
+                
+                <div className="flex-1">
+                  <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+                    <div className="flex items-center gap-2">
+                      <span className={`px-3 py-1 rounded-full text-[10px] font-bold border ${getBadgeStyle(item.action)}`}>
+                        {getBadgeLabel(item.action)}
+                      </span>
+                      <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{new Date(item.timestamp).toLocaleDateString()}</span>
+                    </div>
+                  </div>
+                  
+                  <div className="text-slate-700 font-bold text-base leading-relaxed">
+                    {getDisplayText(item)}
+                  </div>
                 </div>
               </div>
             </div>

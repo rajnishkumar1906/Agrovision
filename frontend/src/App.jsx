@@ -1,4 +1,4 @@
-import  { useState, useEffect, createContext } from 'react';
+import  { useState, useEffect, createContext, useMemo } from 'react';
 import Dashboard from './pages/Dashboard';
 import AuthPage from './pages/AuthPage';
 import LandingPage from './pages/LandingPage';
@@ -10,15 +10,21 @@ import { useTranslation } from 'react-i18next';
 export const LanguageContext = createContext();
 
 function App() {
-  const [currentPage, setCurrentPage] = useState('landing');
-  const [showSplash, setShowSplash] = useState(true);
   const { isAuthenticated, token, logout } = useAuthStore();
+  const [currentPage, setCurrentPage] = useState(() => {
+    // Initial page based on auth state to avoid "white flash" transitions
+    return (isAuthenticated && token) ? 'dashboard' : 'landing';
+  });
+  const [showSplash, setShowSplash] = useState(true);
   const { language, setLanguage } = useLanguageStore();
   const { i18n, t } = useTranslation();
 
+  // Sync page with auth state changes
   useEffect(() => {
     if (isAuthenticated && token && currentPage === 'landing') {
       setCurrentPage('dashboard');
+    } else if (!isAuthenticated && (currentPage === 'dashboard' || currentPage === 'disease' || currentPage === 'crop' || currentPage === 'history')) {
+      setCurrentPage('landing');
     }
   }, [isAuthenticated, token, currentPage]);
 
@@ -45,10 +51,37 @@ function App() {
     setCurrentPage('dashboard');
   };
 
-  const contextValue = {
+  const contextValue = useMemo(() => ({
     t,
     language,
     changeLanguage: setLanguage
+  }), [t, language, setLanguage]);
+
+  // Handle case where currentPage might be set to an invalid value
+  const renderContent = () => {
+    if (currentPage === 'landing') {
+      return <LandingPage onNavigate={handleNavigate} />;
+    }
+    
+    if (currentPage === 'login' || currentPage === 'register') {
+      return (
+        <AuthPage 
+          type={currentPage}
+          onBack={() => setCurrentPage('landing')}
+          onSuccess={handleAuthSuccess}
+          onNavigate={handleNavigate}
+        />
+      );
+    }
+    
+    // Default to Dashboard for all other authenticated tabs
+    return (
+      <Dashboard 
+        onLogout={handleLogout}
+        onNavigate={handleNavigate}
+        initialTab={currentPage === 'dashboard' ? 'dashboard' : currentPage}
+      />
+    );
   };
 
   return (
@@ -57,28 +90,7 @@ function App() {
         <SplashScreen onFinish={() => setShowSplash(false)} />
       ) : (
         <div className="min-h-screen bg-slate-50 font-sans text-slate-900 animate-fade-in">
-          {currentPage === 'landing' && (
-            <LandingPage 
-              onNavigate={handleNavigate} 
-            />
-          )}
-          
-          {(currentPage === 'login' || currentPage === 'register') && (
-            <AuthPage 
-              type={currentPage}
-              onBack={() => setCurrentPage('landing')}
-              onSuccess={handleAuthSuccess}
-              onNavigate={handleNavigate}
-            />
-          )}
-          
-          {(currentPage === 'dashboard' || currentPage === 'disease' || currentPage === 'crop' || currentPage === 'history') && (
-            <Dashboard 
-              onLogout={handleLogout}
-              onNavigate={handleNavigate}
-              initialTab={currentPage === 'dashboard' ? 'dashboard' : currentPage}
-            />
-          )}
+          {renderContent()}
         </div>
       )}
     </LanguageContext.Provider>

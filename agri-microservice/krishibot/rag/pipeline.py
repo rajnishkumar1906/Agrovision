@@ -1,4 +1,4 @@
-from typing import List, Optional, Dict, Any
+from typing import  Dict, Any
 from langchain_core.documents import Document
 import logging
 
@@ -10,9 +10,34 @@ class RAGPipeline:
         self.generator = generator
         logging.info("RAG Pipeline initialized")
 
-    def run(self, query: str, k: int = 3, include_confidence: bool = False, preferred_language: str = "en", gender: str = "male") -> Dict[str, Any]:
+    def run(self, query: str, k: int = 5, include_confidence: bool = False, preferred_language: str = "en", gender: str = "male") -> Dict[str, Any]:
         """Run RAG pipeline with optional confidence scoring and language/gender preference"""
         
+        # 1. Classify query to get category and tone
+        category, tone = "general", "helpful"
+        if hasattr(self.generator, 'classifier') and self.generator.classifier:
+            try:
+                category, tone = self.generator.classifier.classify(query)
+                logging.info(f"Query classified as: {category} (Tone: {tone})")
+            except Exception as e:
+                logging.error(f"Classification error: {e}")
+
+        # 2. Fast path for greetings
+        if category == "greeting" and len(query.strip()) < 30:
+            lang_map = {
+                "en": "Hello Kisan Bhai! I am KrishiBot. How can I help you with your farming today?",
+                "hi": "नमस्ते किसान भाई! मैं कृषिबॉट हूँ। आज मैं आपकी खेती में कैसे मदद कर सकता हूँ?",
+                "pa": "ਸਤਿ ਸ੍ਰੀ ਅਕਾਲ ਕਿਸਾਨ ਵੀਰ! ਮੈਂ ਕ੍ਰਿਸ਼ੀਬੋਟ ਹਾਂ। ਅੱਜ ਮੈਂ ਤੁਹਾਡੀ ਖੇਤੀ ਵਿੱਚ ਕਿਵੇਂ ਮਦਦ ਕਰ ਸਕਦਾ ਹਾਂ?"
+            }
+            return {
+                "answer": lang_map.get(preferred_language, lang_map["en"]),
+                "retrieved_docs": [],
+                "num_docs": 0,
+                "category": category,
+                "tone": tone
+            }
+
+        # 3. Retrieve relevant documents
         if include_confidence:
             # Get documents with scores
             docs_with_scores = self.retriever.retrieve_with_scores(query, k=k)
@@ -24,13 +49,23 @@ class RAGPipeline:
             scores = None
             avg_confidence = None
         
+        # 4. Generate answer using context, category, and tone
         context = "\n\n".join([doc.page_content for doc in docs])
-        answer = self.generator.generate(context, query, preferred_language=preferred_language, gender=gender)
+        answer = self.generator.generate(
+            context, 
+            query, 
+            category=category, 
+            tone=tone, 
+            preferred_language=preferred_language, 
+            gender=gender
+        )
         
         result = {
             "answer": answer,
             "retrieved_docs": docs,
-            "num_docs": len(docs)
+            "num_docs": len(docs),
+            "category": category,
+            "tone": tone
         }
         
         if include_confidence:
@@ -39,8 +74,8 @@ class RAGPipeline:
         
         logging.info(f"Generated answer for query: {query[:50]}...")
         return result
-    
-    def run_stream(self, query: str, k: int = 3):
+
+    def run_stream(self, query: str, k: int = 5):
         """Stream the response"""
         docs = self.retriever.retrieve(query, k=k)
         context = "\n\n".join([doc.page_content for doc in docs])

@@ -72,6 +72,7 @@ app.get('/history/:userId', async (req, res) => {
         { 'details.result.disease_translated': searchRegex },
         { 'details.result.recommended_crop': searchRegex },
         { 'details.result.answer': searchRegex },
+        { 'details.response': searchRegex },
         { 'details.input.N': searchRegex },
         { 'details.input.P': searchRegex },
         { 'details.input.K': searchRegex },

@@ -33,4 +33,10 @@
 
 **9. The Pradhan Mantri Fasal Bima Yojana (PMFBY)** – not a law but a government scheme for crop insurance.
 
-**Current status (as of 2026):** The three farm laws of 2020 have been repealed. APMC mandis are again the primary regulated marketplaces. However, the Essential Commodities Act remains in force with 2020 amendments.
+**10. Bihar-Specific Agricultural Rules (Important)**
+- **Abolition of APMC Act (2006):** Bihar was the first state to abolish the APMC Act in 2006. There are no regulated mandis. Farmers can sell directly to private buyers, traders, or through PACS.
+- **PACS (Primary Agricultural Credit Societies):** These play a crucial role in Bihar for procurement of paddy and wheat at MSP.
+- **Bihar Rajya Fasal Sahayata Yojana:** A state-specific crop assistance scheme that provides financial aid to farmers in case of crop loss due to natural calamities (replaces PMFBY in Bihar).
+- **Land Records (Bhumi Jankari):** Digitization of land records is ongoing; mutations are required for many govt subsidies.
+
+**Current status (as of 2026):** The three farm laws of 2020 have been repealed. APMC mandis are again the primary regulated marketplaces in most states, EXCEPT Bihar where the free-market system (post-2006) continues. The Essential Commodities Act remains in force with 2020 amendments.

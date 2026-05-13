@@ -1,4 +1,4 @@
-import { registerUser, loginUser, verifyUserToken, forwardCropRecommendation, forwardDiseaseDetection, checkServiceHealth, getHistory as getHistoryService, forwardChatbotQuery, forwardChatbotVoice, getChatbotAudio } from '../services/microserviceService.js';
+import { registerUser, loginUser, verifyUserToken, forwardCropRecommendation, forwardDiseaseDetection, checkServiceHealth, getHistory as getHistoryService, forwardChatbotText, forwardChatbotVoice, getChatbotAudio } from '../services/microserviceService.js';
 import { saveToCacheAsync } from '../utils/cacheUtils.js';
 import { logActivity } from '../utils/historyLogger.js';
 import FormData from 'form-data';
@@ -237,13 +237,21 @@ export const askChatbot = async (req, res) => {
     const startTime = Date.now();
     console.log(`📝 Final query: "${query}" (Lang: ${language}, Gender: ${gender})`);
 
-    const responseData = await forwardChatbotQuery(query, language, gender);
+    const responseData = await forwardChatbotText(query, language, gender);
 
     const processingTime = Date.now() - startTime;
 
     console.log(`✓ KrishiBot Response (${processingTime}ms)`);
 
-    // Fire-and-forget audit log
+    // 1. Send response to user IMMEDIATELY for maximum speed
+    res.status(200).json({
+      success: true,
+      message: 'Chatbot query processed',
+      data: responseData,
+      latency: `${processingTime}ms`,
+    });
+
+    // 2. Log activity in background AFTER sending response
     try {
       const userId = req.user?.userId;
       if (userId) {
@@ -253,20 +261,13 @@ export const askChatbot = async (req, res) => {
           gender,
           route: '/api/chatbot/ask-text',
           result: responseData,
+          response: responseData.answer || responseData.data?.answer || 'No response'
         };
         logActivity(userId, 'CHATBOT_QUERY', details);
       }
     } catch (logError) {
       console.error('[Gateway] Failed to log text chatbot activity:', logError.message);
     }
-
-    // Ensure response matches frontend expected format
-    return res.status(200).json({
-      success: true,
-      message: 'Chatbot query processed',
-      data: responseData,
-      latency: `${processingTime}ms`,
-    });
   } catch (error) {
     console.error('Error forwarding to KrishiBot Service:', error.message);
     if (error.response) {
@@ -313,7 +314,13 @@ export const askChatbotVoice = async (req, res) => {
 
     console.log('✅ Voice response received from KrishiBot');
 
-    // Fire-and-forget audit log
+    // 1. Send response to user IMMEDIATELY
+    res.status(200).json({
+      success: true,
+      data: responseData,
+    });
+
+    // 2. Log activity in background
     try {
       const userId = req.user?.userId;
       if (userId) {
@@ -322,19 +329,14 @@ export const askChatbotVoice = async (req, res) => {
           language,
           gender,
           result: responseData,
-          // Extract query from response if available
-          query: responseData.query || responseData.data?.query
+          query: responseData.query || responseData.data?.query,
+          response: responseData.answer || responseData.data?.answer || 'No response'
         };
         logActivity(userId, 'CHATBOT_QUERY', details);
       }
     } catch (logError) {
       console.error('[Gateway] Failed to log voice chatbot activity:', logError.message);
     }
-
-    return res.status(200).json({
-      success: true,
-      data: responseData,
-    });
   } catch (error) {
     console.error('Error forwarding voice to KrishiBot Service:', error.message);
     return res.status(error.response?.status || 500).json({

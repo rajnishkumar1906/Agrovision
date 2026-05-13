@@ -83,7 +83,7 @@ export const forwardCropRecommendation = async (data, language = 'en') => {
     // Merge language into data if not present
     const payload = { ...data, language };
     const response = await axios.post(`${CROP_RECOMMENDATION_URL}/recommend`, payload, {
-      timeout: 30000,
+      timeout: 120000,
       headers: {
         'Content-Type': 'application/json',
       },
@@ -164,14 +164,11 @@ export const getHistory = async (userId, params = {}) => {
   }
 };
 
-// Forward to KrishiBot Service
-export const forwardChatbotQuery = async (query, language = 'en', gender = 'male') => {
+// Forward Text to KrishiBot Service
+export const forwardChatbotText = async (query, language = 'hi', gender = 'male') => {
   try {
     const response = await axios.post(`${KRISHIBOT_URL}/api/ask-text?query=${encodeURIComponent(query)}&language=${language}&gender=${gender}`, {}, {
-      timeout: 30000,
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      timeout: 120000, // Increased to 120s
     });
     return response.data;
   } catch (error) {
@@ -183,7 +180,7 @@ export const forwardChatbotQuery = async (query, language = 'en', gender = 'male
 export const forwardChatbotVoice = async (formData, language = 'hi', gender = 'male') => {
   try {
     const response = await axios.post(`${KRISHIBOT_URL}/api/ask-voice?language=${language}&gender=${gender}`, formData, {
-      timeout: 60000,
+      timeout: 120000, // Increased to 120s to allow for slower CPU STT processing
       headers: {
         ...formData.getHeaders ? formData.getHeaders() : { 'Content-Type': 'multipart/form-data' },
       },
@@ -206,4 +203,3 @@ export const getChatbotAudio = async (filename) => {
     throw error;
   }
 };
-
