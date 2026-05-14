@@ -2,6 +2,9 @@ from transformers import pipeline
 import logging
 import os
 
+# Suppress tokenizer parallelism warning
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
+
 class SpeechToText:
 
     def __init__(self, model_name="openai/whisper-base", language=None):
@@ -14,11 +17,16 @@ class SpeechToText:
         self.model_name = model_name
         self.language = language
         try:
+            logging.info(f"Loading speech to text model: {model_name}...")
             self.pipe = pipeline(
                 "automatic-speech-recognition",
-                model=model_name
+                model=model_name,
+                chunk_length_s=30,
+                device="cpu", # Explicitly set device to avoid overhead, change to 0 for GPU
+                model_kwargs={"low_cpu_mem_usage": True}
             )
-            logging.info(f"Speech to text model loaded: {model_name}")
+            # Warm up the model with a tiny silence or empty call if possible
+            logging.info(f"Speech to text model {model_name} loaded successfully")
         except Exception as e:
             logging.error(f"Failed to load speech model: {e}")
             raise
@@ -30,15 +38,20 @@ class SpeechToText:
         
         try:
             # Set generation parameters
-            generate_kwargs = {}
-            if self.language:
-                generate_kwargs["language"] = self.language
+            generate_kwargs = {
+                "task": "transcribe",
+                "language": self.language if self.language else "en"
+            }
             
-            result = self.pipe(file_path, generate_kwargs=generate_kwargs)
+            result = self.pipe(
+                file_path, 
+                generate_kwargs=generate_kwargs,
+                return_timestamps=False
+            )
             
             text = result["text"]
             logging.info(f"Transcribed: {text[:50]}...")
-            return text
+            return text.strip()
             
         except RuntimeError as e:
             if "ffmpeg" in str(e).lower():

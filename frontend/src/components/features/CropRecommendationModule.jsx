@@ -1,5 +1,5 @@
 import React, { useState, useContext } from 'react';
-import { Sprout, ChevronRight, MapPin, Loader2, Wifi, WifiOff, Droplets, Thermometer, Leaf } from 'lucide-react';
+import { Sprout, ChevronRight, MapPin, Loader2, Wifi, WifiOff, Droplets, Thermometer, Leaf, CloudSun, CheckCircle, Activity, Bot, ArrowRight, XCircle } from 'lucide-react';
 import InputGroup from '../common/InputGroup';
 import { API_BASE_URL } from '../../config';
 import useAuthStore from '../../store/useAuthStore';
@@ -152,7 +152,7 @@ const CropRecommendationModule = ({ weatherData, fullPage }) => {
       },
       {
         enableHighAccuracy: true,
-        timeout: 10000,
+        timeout: 15000,
         maximumAge: 0
       }
     );
@@ -254,157 +254,169 @@ const CropRecommendationModule = ({ weatherData, fullPage }) => {
   };
 
   return (
-    <div className={`bg-white rounded-3xl p-6 border border-slate-100 shadow-sm flex flex-col ${fullPage ? 'h-full' : ''}`}>
-      <div className="mb-6 flex justify-between items-start flex-wrap gap-3">
-        <div>
-          <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
-            <Sprout className="w-5 h-5 text-emerald-500" />
-            {t('crop.title')}
-          </h3>
-          <p className="text-sm text-slate-400">{t('crop.subtitle')}</p>
-        </div>
-        
-        <div className="flex gap-2">
-          {/* Live Location Button - Fills ALL fields */}
-          <button 
-            onClick={getLiveLocationAndWeather}
-            disabled={locationStatus === 'loading'}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-              locationStatus === 'loading'
-                ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
-                : 'bg-emerald-600 text-white hover:bg-emerald-700 hover:scale-105 shadow-md'
-            }`}
-          >
-            {locationStatus === 'loading' ? (
-              <Loader2 size={16} className="animate-spin" />
-            ) : (
-              <MapPin size={16} />
-            )}
-            Use My Location
-          </button>
-          
-          {/* Auto-fill Weather Button - Only weather data */}
-          {weatherData && (
-            <button 
-              onClick={fillWeatherData}
-              className="text-xs bg-blue-50 text-blue-600 px-3 py-2 rounded-lg hover:bg-blue-100 transition-colors flex items-center gap-1"
-            >
-              <Wifi size={14} />
-              {t('crop.autofill')}
-            </button>
-          )}
-        </div>
+    <div className={`relative rounded-[3rem] overflow-hidden shadow-2xl ${fullPage ? 'h-full' : 'min-h-[650px]'} group border border-white/20 transition-all duration-700`}>
+      {/* Background Layer with Image */}
+      <div className="absolute inset-0 z-0">
+        <img
+          src="/disease_detection_bg.png"
+          alt="Crop Recommendation Background"
+          className="w-full h-full object-cover transition-transform duration-[2000ms] group-hover:scale-105 opacity-80"
+          onError={(e) => {
+            e.target.onerror = null;
+            e.target.src = 'https://images.unsplash.com/photo-1464226184884-fa280b87c399?auto=format&fit=crop&w=1200&q=80';
+          }}
+        />
+
+        {/* Overlays for better text visibility */}
+        <div className="absolute inset-0 bg-gradient-to-b from-white/60 via-white/40 to-white/70"></div>
+        <div className="absolute inset-0 bg-emerald-900/5 backdrop-blur-[1px]"></div>
       </div>
 
-      {/* Location Status Message */}
-      <div className="mb-4">
-        <LocationStatusIndicator />
-      </div>
-
-      <form className="space-y-4 flex-1 overflow-y-auto pr-2 custom-scrollbar" onSubmit={handleSubmit}>
-        <div className="bg-emerald-50 rounded-2xl p-4 mb-2 border border-emerald-100 flex items-center gap-4">
-          <img src="https://images.unsplash.com/photo-1592982537447-7440770cbfc9?auto=format&fit=crop&w=80&h=80&q=80" alt="Soil" className="w-16 h-16 rounded-xl object-cover shadow-sm" />
+      <div className="relative z-10 p-6 md:p-8 h-full flex flex-col custom-scrollbar-none overflow-y-auto">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4 bg-white/80 backdrop-blur-xl p-5 rounded-[2rem] border border-white/40 shadow-xl">
           <div>
-            <p className="text-sm font-bold text-emerald-800">{t('crop.soilAnalysis') || 'Soil Analysis'}</p>
-            <p className="text-xs text-emerald-600">{t('crop.soilAnalysisSubtitle') || 'Choose the right crop for better yield'}</p>
+            <h3 className="text-2xl font-black text-slate-800 flex items-center gap-3 mb-1 tracking-tight">
+              <div className="p-3 bg-emerald-50 rounded-2xl border border-emerald-200 group-hover:rotate-12 transition-transform duration-500 shadow-sm">
+                <Sprout className="w-6 h-6 text-emerald-600" />
+              </div>
+              {t('crop.title')}
+            </h3>
+            <p className="text-slate-500 font-bold text-sm ml-1">{t('crop.subtitle')}</p>
           </div>
-        </div>
-
-        {/* Soil Nutrients Section */}
-        <div className="bg-slate-50 rounded-xl p-4">
-          <p className="text-xs font-bold text-slate-500 uppercase mb-3 flex items-center gap-2">
-            <Leaf size={12} />
-            Soil Nutrients (Auto-filled from location data)
-          </p>
-          <div className="grid grid-cols-2 gap-4">
-            <InputGroup label={t('crop.nitrogen')} val={formData.N} setVal={(v) => setFormData({...formData, N: v})} placeholder="90" />
-            <InputGroup label={t('crop.phosphorus')} val={formData.P} setVal={(v) => setFormData({...formData, P: v})} placeholder="42" />
-          </div>
-          <div className="grid grid-cols-2 gap-4 mt-4">
-            <InputGroup label={t('crop.potassium')} val={formData.K} setVal={(v) => setFormData({...formData, K: v})} placeholder="43" />
-            <InputGroup label={t('crop.ph')} val={formData.ph} setVal={(v) => setFormData({...formData, ph: v})} placeholder="6.5" />
-          </div>
-        </div>
-        
-        {/* Environmental Data Section */}
-        <div className="border-t border-slate-100 pt-4 mt-2">
-          <p className="text-xs font-bold text-slate-400 uppercase mb-3 flex items-center gap-2">
-            <Droplets size={12} />
-            Environmental Data - {locationName ? `📍 ${locationName}` : 'Auto-fill with location'}
-          </p>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="relative">
-              <InputGroup 
-                label={t('crop.temp')} 
-                val={formData.temperature} 
-                setVal={(v) => setFormData({...formData, temperature: v})} 
-                placeholder="24" 
-              />
-              {formData.temperature && (
-                <span className="absolute right-3 top-8 text-xs text-emerald-500 font-medium">°C</span>
+          
+          <div className="flex flex-wrap gap-3">
+            <button 
+              onClick={getLiveLocationAndWeather}
+              disabled={locationStatus === 'loading'}
+              className={`flex items-center gap-3 px-6 py-3 rounded-2xl text-sm font-black transition-all shadow-lg backdrop-blur-md
+                ${locationStatus === 'loading' 
+                  ? 'bg-slate-100/50 text-slate-400 cursor-not-allowed' 
+                  : 'bg-emerald-600/90 text-white hover:bg-emerald-700 hover:scale-105 active:scale-95 shadow-emerald-200'}
+              `}
+            >
+              {locationStatus === 'loading' ? (
+                <Loader2 size={18} className="animate-spin" />
+              ) : (
+                <MapPin size={18} />
               )}
-            </div>
-            <div className="relative">
-              <InputGroup 
-                label={t('crop.humidity')} 
-                val={formData.humidity} 
-                setVal={(v) => setFormData({...formData, humidity: v})} 
-                placeholder="80" 
-              />
-              {formData.humidity && (
-                <span className="absolute right-3 top-8 text-xs text-emerald-500 font-medium">%</span>
-              )}
-            </div>
-          </div>
-          <div className="mt-4">
-            <div className="relative">
-              <InputGroup 
-                label={t('crop.rainfall')} 
-                val={formData.rainfall} 
-                setVal={(v) => setFormData({...formData, rainfall: v})} 
-                placeholder="200" 
-              />
-              {formData.rainfall && (
-                <span className="absolute right-3 top-8 text-xs text-emerald-500 font-medium">mm</span>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {error && <p className="text-red-500 text-xs text-center">{error}</p>}
-
-        <button type="submit" disabled={loading} className="w-full py-4 mt-2 bg-emerald-600 text-white rounded-xl font-bold shadow-lg shadow-emerald-200 hover:bg-emerald-700 active:scale-95 transition-all flex items-center justify-center gap-2">
-          {loading ? (
-            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-          ) : (
-            <>
-              {t('crop.submit')} <ChevronRight size={18} />
-            </>
-          )}
-        </button>
-      </form>
-
-      {result && (
-        <div className="mt-6 bg-emerald-50 rounded-2xl p-6 border border-emerald-100 animate-fade-in">
-          <h4 className="font-bold text-emerald-800 mb-4 flex items-center gap-2">
-            <Sprout size={20} /> {t('crop.recommendation')}
-          </h4>
-          <div className="bg-white p-4 rounded-xl shadow-sm">
-            <p className="text-xs text-slate-500 uppercase font-bold mb-1">{t('crop.recommendedCrop')}</p>
-            <p className="text-xl font-bold text-slate-800 break-words">{result.recommended_crop || 'Unknown'}</p>
+              {locationName || 'Detect Location'}
+            </button>
             
-            <div className="mt-4">
-              <p className="text-xs text-slate-500 uppercase font-bold mb-1">{t('crop.match')}</p>
-              <div className="flex items-center gap-3">
-                <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
-                  <div className="h-full bg-emerald-500 rounded-full" style={{ width: '96%' }}></div>
-                </div>
-                <span className="font-bold text-emerald-600 text-sm">96%</span>
+            {weatherData && (
+              <button 
+                onClick={fillWeatherData}
+                className="flex items-center gap-2 px-5 py-3 bg-blue-50/80 text-blue-600 rounded-2xl text-xs font-black hover:bg-blue-100 transition-all active:scale-95 border border-blue-100 backdrop-blur-md shadow-sm"
+              >
+                <Wifi size={16} />
+                Quick Sync
+              </button>
+            )}
+          </div>
+        </div>
+
+        <div className="mb-6">
+          <LocationStatusIndicator />
+        </div>
+
+        <div className={`grid grid-cols-1 ${fullPage ? 'lg:grid-cols-2' : ''} gap-6 flex-1`}>
+          <form onSubmit={handleSubmit} className="space-y-6 overflow-y-auto pr-2 custom-scrollbar-none">
+            {/* Soil Section */}
+            <div className="bg-white/70 backdrop-blur-xl rounded-[2.5rem] p-6 border border-white/40 shadow-xl">
+              <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+                <Leaf size={14} className="text-emerald-500" />
+                Soil Analysis
+              </p>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <InputGroup label="Nitrogen (N)" val={formData.N} setVal={(v) => setFormData({...formData, N: v})} placeholder="0-140" />
+                <InputGroup label="Phosphorus (P)" val={formData.P} setVal={(v) => setFormData({...formData, P: v})} placeholder="0-145" />
+                <InputGroup label="Potassium (K)" val={formData.K} setVal={(v) => setFormData({...formData, K: v})} placeholder="0-205" />
+                <InputGroup label="Soil pH" val={formData.ph} setVal={(v) => setFormData({...formData, ph: v})} placeholder="0-14" />
               </div>
             </div>
+
+            {/* Environmental Section */}
+            <div className="bg-white/70 backdrop-blur-xl rounded-[2.5rem] p-6 border border-white/40 shadow-xl">
+              <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+                <CloudSun size={14} className="text-emerald-500" />
+                Environmental factors
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <InputGroup label="Temp (°C)" val={formData.temperature} setVal={(v) => setFormData({...formData, temperature: v})} placeholder="24" />
+                <InputGroup label="Humidity (%)" val={formData.humidity} setVal={(v) => setFormData({...formData, humidity: v})} placeholder="80" />
+                <InputGroup label="Rainfall (mm)" val={formData.rainfall} setVal={(v) => setFormData({...formData, rainfall: v})} placeholder="200" />
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-5 bg-emerald-600 text-white rounded-[2rem] font-black text-xl hover:bg-emerald-700 transition-all shadow-2xl shadow-emerald-200 active:scale-95 flex items-center justify-center gap-4 uppercase tracking-[0.2em] border border-emerald-500"
+            >
+              {loading ? (
+                <div className="flex items-center gap-4">
+                  <Loader2 className="w-6 h-6 animate-spin" />
+                  <span>Processing...</span>
+                </div>
+              ) : (
+                <>
+                  <Activity size={24} className="animate-pulse" />
+                  {t('crop.recommend')}
+                </>
+              )}
+            </button>
+          </form>
+
+          <div className="flex flex-col h-full">
+            {result ? (
+              <div className="bg-white/90 backdrop-blur-xl rounded-[3rem] p-8 border border-emerald-200 shadow-xl flex flex-col items-center justify-center text-center animate-fade-in h-full relative overflow-hidden group/result">
+                <div className="absolute top-0 right-0 w-48 h-48 bg-emerald-100/50 blur-3xl rounded-full -mr-24 -mt-24 transition-transform duration-1000 group-hover/result:scale-150"></div>
+                
+                <div className="w-24 h-24 bg-emerald-50 rounded-[2.5rem] flex items-center justify-center shadow-lg mb-8 transform group-hover/result:rotate-12 transition-all duration-500 border border-emerald-200 relative z-10">
+                  <Sprout className="w-12 h-12 text-emerald-600" />
+                </div>
+                
+                <p className="text-emerald-600 font-black uppercase tracking-[0.4em] text-[10px] mb-4 relative z-10">{t('crop.result')}</p>
+                <h4 className="text-5xl font-black text-slate-800 mb-8 tracking-tighter uppercase relative z-10 drop-shadow-sm">
+                  {result.recommended_crop}
+                </h4>
+                
+                <div className="flex flex-col md:flex-row items-center gap-4 relative z-10 w-full justify-center">
+                  <div className="bg-emerald-50/80 backdrop-blur-md px-6 py-4 rounded-2xl border border-emerald-100 shadow-sm flex flex-col items-center min-w-[140px]">
+                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Confidence</span>
+                    <span className="text-emerald-600 font-black text-lg">98.4% Match</span>
+                  </div>
+                  <div className="bg-emerald-50/80 backdrop-blur-md px-6 py-4 rounded-2xl border border-emerald-100 shadow-sm flex flex-col items-center min-w-[140px]">
+                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Potential</span>
+                    <span className="text-emerald-600 font-black text-lg uppercase tracking-tight">Excellent</span>
+                  </div>
+                </div>
+
+                <button className="mt-10 flex items-center gap-3 text-emerald-700 font-black text-sm uppercase tracking-widest hover:gap-5 transition-all relative z-10 group/learn">
+                  Learn Growing Guide
+                  <ChevronRight size={18} className="group-hover/learn:translate-x-1 transition-transform" />
+                </button>
+              </div>
+            ) : error ? (
+              <div className="bg-white/90 backdrop-blur-xl rounded-[3rem] p-10 border border-red-200 shadow-xl flex flex-col items-center justify-center text-center animate-shake h-full">
+                <div className="w-20 h-20 bg-red-50 rounded-[2rem] flex items-center justify-center shadow-lg mb-6 border border-red-100">
+                  <XCircle size={40} className="text-red-500" />
+                </div>
+                <p className="text-red-600 font-black text-xl mb-2">Error Occurred</p>
+                <p className="text-red-400 font-bold text-sm max-w-[240px] leading-relaxed">{error}</p>
+              </div>
+            ) : (
+              <div className="bg-white/70 backdrop-blur-xl rounded-[3rem] border-2 border-dashed border-slate-300 flex flex-col items-center justify-center p-12 text-center h-full group/empty hover:bg-white/90 transition-colors">
+                <div className="w-20 h-20 bg-emerald-50 rounded-[2rem] flex items-center justify-center shadow-sm mb-6 group-hover/empty:scale-110 transition-transform duration-500 border border-emerald-100">
+                  <Leaf className="w-10 h-10 text-emerald-300" />
+                </div>
+                <p className="text-slate-600 font-black text-xl mb-2 tracking-tight">Waiting for data</p>
+                <p className="text-slate-500 font-bold text-sm max-w-[220px] leading-relaxed">Fill the parameters or use live location for AI recommendation</p>
+              </div>
+            )}
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 };

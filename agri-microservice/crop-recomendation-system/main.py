@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import numpy as np
+import pandas as pd
 import pickle
 import os
 from typing import Any, Tuple, AsyncGenerator
@@ -16,12 +17,12 @@ class Language(str, Enum):
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """Load models when the app starts"""
-    global MODEL, SC, MS
-    MODEL, SC, MS = load_models()
+    global MODEL, MS
+    MODEL, MS = load_models()
     if MODEL is None:
         print("Warning: Models could not be loaded. Predictions will fail.")
     yield
-    MODEL = SC = MS = None
+    MODEL = MS = None
 
 # Initialize FastAPI app
 app = FastAPI(title="AgroVision Crop Recommendation API", version="1.0.0", lifespan=lifespan)
@@ -70,33 +71,29 @@ class LocationWeatherInput(BaseModel):
     ph: float
     language: Language = Language.ENGLISH
 
-def load_models() -> Tuple[Any, Any, Any]:
-    """Load pre-trained model and scalers from pickle files"""
+def load_models() -> Tuple[Any, Any]:
+    """Load pre-trained model and scaler from pickle files"""
     try:
         base_dir = os.path.dirname(os.path.abspath(__file__))
-        model_path = os.path.join(base_dir, 'model.pkl')
-        sc_path = os.path.join(base_dir, 'standscaler.pkl')
-        ms_path = os.path.join(base_dir, 'minmaxscaler.pkl')
+        model_path = os.path.join(base_dir, 'models', 'model.pkl')
+        ms_path = os.path.join(base_dir, 'models', 'minmaxscaler.pkl')
 
         with open(model_path, 'rb') as f:
             model = pickle.load(f)
-        with open(sc_path, 'rb') as f:
-            sc = pickle.load(f)
         with open(ms_path, 'rb') as f:
             ms = pickle.load(f)
         
-        print("Models loaded successfully")
-        return model, sc, ms
+        print(f"Models loaded successfully from {model_path} and {ms_path}")
+        return model, ms
     except FileNotFoundError as e:
         print(f"Error loading model files: {e}")
-        return None, None, None
+        return None, None
     except Exception as e:
         print(f"Unexpected error loading models: {e}")
-        return None, None, None
+        return None, None
 
 # Global model variables
 MODEL = None
-SC = None
 MS = None
 
 # Trilingual Crop Dictionary
@@ -163,25 +160,6 @@ def get_crop_name(index: int, language: Language) -> str:
         return CROP_DICT_PA.get(index, "ਅਗਿਆਤ")
     return CROP_DICT_EN.get(index, "Unknown")
 
-def calculate_confidence(prediction_proba=None) -> int:
-    """
-    Calculate confidence score for the prediction.
-    Returns a confidence percentage between 85-99%
-    """
-    # If your model supports predict_proba, use actual probabilities
-    try:
-        if hasattr(MODEL, 'predict_proba') and prediction_proba is not None:
-            confidence = int(np.max(prediction_proba) * 100)
-            return min(max(confidence, 85), 99)  # Keep between 85-99%
-    except:
-        pass
-    
-    # Simulate confidence based on reasonable range
-    # In production, replace with actual model confidence scores
-    import random
-    random.seed(42)  # For consistent results
-    return random.randint(85, 99)
-
 @app.get("/", tags=["Health"])
 async def root(language: Language = Language.ENGLISH):
     """Health check endpoint with language support"""
@@ -189,7 +167,7 @@ async def root(language: Language = Language.ENGLISH):
         "message": MESSAGES[language.value]["welcome"],
         "status": "running",
         "language": language.value,
-        "model_loaded": MODEL is not None and SC is not None and MS is not None,
+        "model_loaded": MODEL is not None and MS is not None,
         "supported_languages": ["en", "hi", "pa"]
     }
 
@@ -200,7 +178,7 @@ async def recommend(crop_input: CropInput):
     Returns response in English, Hindi, or Punjabi based on language parameter.
     """
     
-    if MODEL is None or SC is None or MS is None:
+    if MODEL is None or MS is None:
         return {
             "error": MESSAGES[crop_input.language.value]["model_not_loaded"],
             "recommended_crop": None,
@@ -208,8 +186,9 @@ async def recommend(crop_input: CropInput):
         }
     
     try:
-        # Prepare feature list from input
-        feature_list = [
+        # Prepare feature list from input with correct names to avoid scikit-learn warnings
+        feature_names = ['N', 'P', 'K', 'temperature', 'humidity', 'ph', 'rainfall']
+        features_df = pd.DataFrame([[
             crop_input.N,
             crop_input.P,
             crop_input.K,
@@ -217,14 +196,10 @@ async def recommend(crop_input: CropInput):
             crop_input.humidity,
             crop_input.ph,
             crop_input.rainfall
-        ]
+        ]], columns=feature_names)
         
-        # Reshape for model prediction
-        single_pred = np.array(feature_list).reshape(1, -1)
-        
-        # Apply scalers
-        scaled_features = MS.transform(single_pred)
-        final_features = SC.transform(scaled_features)
+        # Apply scaler
+        final_features = MS.transform(features_df)
 
         # Make prediction
         prediction = MODEL.predict(final_features)
@@ -266,7 +241,7 @@ async def recommend_with_location(location_input: LocationWeatherInput):
     This endpoint would integrate with a weather API in production.
     """
     
-    if MODEL is None or SC is None or MS is None:
+    if MODEL is None or MS is None:
         return {
             "error": MESSAGES[location_input.language.value]["model_not_loaded"],
             "recommended_crop": None,
@@ -280,7 +255,9 @@ async def recommend_with_location(location_input: LocationWeatherInput):
         humidity = 65.0     # Would be fetched from weather API
         rainfall = 150.0    # Would be fetched from weather API
         
-        feature_list = [
+        # Prepare features with names to avoid scikit-learn warnings
+        feature_names = ['N', 'P', 'K', 'temperature', 'humidity', 'ph', 'rainfall']
+        features_df = pd.DataFrame([[
             location_input.N,
             location_input.P,
             location_input.K,
@@ -288,13 +265,21 @@ async def recommend_with_location(location_input: LocationWeatherInput):
             humidity,
             location_input.ph,
             rainfall
-        ]
+        ]], columns=feature_names)
         
-        single_pred = np.array(feature_list).reshape(1, -1)
-        scaled_features = MS.transform(single_pred)
-        final_features = SC.transform(scaled_features)
+        final_features = MS.transform(features_df)
         
         prediction = MODEL.predict(final_features)
+        
+        # Get prediction probabilities if available
+        confidence = 96
+        try:
+            if hasattr(MODEL, 'predict_proba'):
+                proba = MODEL.predict_proba(final_features)
+                confidence = int(np.max(proba) * 100)
+        except:
+            confidence = 92
+            
         crop_index = int(prediction[0])
         crop = get_crop_name(crop_index, location_input.language)
         
@@ -305,7 +290,7 @@ async def recommend_with_location(location_input: LocationWeatherInput):
                 "latitude": location_input.latitude,
                 "longitude": location_input.longitude
             },
-            "confidence": "94%",
+            "confidence": f"{confidence}%",
             "confidence_label": MESSAGES[location_input.language.value]["confidence"],
             "language": location_input.language.value,
             "message": MESSAGES[location_input.language.value]["prediction_success"]

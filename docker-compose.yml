@@ -46,7 +46,7 @@ services:
       HISTORY_SERVICE_URL: http://history:8003
       CROP_RECOMMENDATION_URL: http://croprec:8001
       DISEASE_DETECTION_URL: http://disease:8002
-      KRISHIBOT_SERVICE_URL: http://krishibot:8003
+      KRISHIBOT_SERVICE_URL: http://krishibot:8004
     ports:
       - "3000:5001"
     depends_on:
@@ -118,7 +118,7 @@ services:
     env_file:
       - ./agri-microservice/krishibot/krishibot.env
     ports:
-      - "8003:8003"
+      - "8004:8004"
     networks:
       - agro-net
 

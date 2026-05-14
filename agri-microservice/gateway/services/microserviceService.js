@@ -7,7 +7,7 @@ const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL || 'http://auth:4001';
 const CROP_RECOMMENDATION_URL = process.env.CROP_RECOMMENDATION_URL || 'http://croprec:8001';
 const HISTORY_SERVICE_URL = process.env.HISTORY_SERVICE_URL || 'http://history:8003';
 const DISEASE_DETECTION_URL = process.env.DISEASE_DETECTION_URL || 'http://disease:8002';
-const KRISHIBOT_URL = process.env.KRISHIBOT_SERVICE_URL || 'http://krishibot:8003';
+const KRISHIBOT_URL = process.env.KRISHIBOT_SERVICE_URL || 'http://krishibot:8004';
 
 // Forward to Auth Service - Register
 export const registerUser = async (userData) => {
@@ -83,7 +83,7 @@ export const forwardCropRecommendation = async (data, language = 'en') => {
     // Merge language into data if not present
     const payload = { ...data, language };
     const response = await axios.post(`${CROP_RECOMMENDATION_URL}/recommend`, payload, {
-      timeout: 30000,
+      timeout: 120000,
       headers: {
         'Content-Type': 'application/json',
       },
@@ -131,10 +131,14 @@ export const checkServiceHealth = async () => {
   try {
     const cropStatus = await axios.get(`${CROP_RECOMMENDATION_URL}/`, { timeout: 5000 }).catch(() => null);
     const diseaseStatus = await axios.get(`${DISEASE_DETECTION_URL}/`, { timeout: 5000 }).catch(() => null);
+    const historyStatus = await axios.get(`${HISTORY_SERVICE_URL}/`, { timeout: 5000 }).catch(() => null);
+    const krishibotStatus = await axios.get(`${KRISHIBOT_URL}/`, { timeout: 5000 }).catch(() => null);
 
     return {
       cropRecommendation: cropStatus ? 'UP' : 'DOWN',
       diseaseDetection: diseaseStatus ? 'UP' : 'DOWN',
+      history: historyStatus ? 'UP' : 'DOWN',
+      krishibot: krishibotStatus ? 'UP' : 'DOWN',
     };
   } catch (error) {
     throw error;
@@ -160,14 +164,11 @@ export const getHistory = async (userId, params = {}) => {
   }
 };
 
-// Forward to KrishiBot Service
-export const forwardChatbotQuery = async (query, language = 'en', gender = 'male') => {
+// Forward Text to KrishiBot Service
+export const forwardChatbotText = async (query, language = 'hi', gender = 'male') => {
   try {
     const response = await axios.post(`${KRISHIBOT_URL}/api/ask-text?query=${encodeURIComponent(query)}&language=${language}&gender=${gender}`, {}, {
-      timeout: 30000,
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      timeout: 120000, // Increased to 120s
     });
     return response.data;
   } catch (error) {
@@ -179,7 +180,7 @@ export const forwardChatbotQuery = async (query, language = 'en', gender = 'male
 export const forwardChatbotVoice = async (formData, language = 'hi', gender = 'male') => {
   try {
     const response = await axios.post(`${KRISHIBOT_URL}/api/ask-voice?language=${language}&gender=${gender}`, formData, {
-      timeout: 60000,
+      timeout: 120000, // Increased to 120s to allow for slower CPU STT processing
       headers: {
         ...formData.getHeaders ? formData.getHeaders() : { 'Content-Type': 'multipart/form-data' },
       },
@@ -202,4 +203,3 @@ export const getChatbotAudio = async (filename) => {
     throw error;
   }
 };
-
