@@ -3,6 +3,7 @@ import useAuthStore from '../../store/useAuthStore';
 import { API_BASE_URL } from '../../config';
 import { Mic, Send, Volume2, X, Bot, Sparkles, ChevronRight } from 'lucide-react';
 import { LanguageContext } from '../../App';
+import '../../styles/bot.css';
 
 const ChatbotModule = ({ fullPage = false }) => {
   const { t, language } = useContext(LanguageContext);
@@ -56,7 +57,9 @@ const ChatbotModule = ({ fullPage = false }) => {
   const [lastBotAnswer, setLastBotAnswer] = useState('');
   const [showQuickActions, setShowQuickActions] = useState(false);
   const [transcript, setTranscript] = useState('');
-  const [silenceTimeout, setSilenceTimeout] = useState(null);
+  const silenceTimeoutRef = useRef(null);
+  const isRecordingRef = useRef(false);
+  const isListeningRef = useRef(false);
 
   // Custom "Amazing" Floating Mic SVG Component
   const FloatingMicIcon = ({ isListening, isProcessing }) => (
@@ -172,10 +175,10 @@ const ChatbotModule = ({ fullPage = false }) => {
   );
 
   const quickActions = [
-    { label: 'Disease Scan', query: 'How do I use the disease detection tool?', desc: 'Upload a leaf photo to identify crop diseases instantly.' },
-    { label: 'Crop Recommendation', query: 'How does crop recommendation work?', desc: 'Get AI-based crop suggestions based on your soil data (N-P-K).' },
-    { label: 'Weather Info', query: 'Show me my local weather forecast.', desc: 'Check hyper-local weather data for better farm planning.' },
-    { label: 'Soil Health', query: 'How to improve soil health?', desc: 'Learn tips to maintain and improve your soil fertility.' }
+    { label: t('nav.diseaseDetect'), query: 'How do I use the disease detection tool?', desc: language === 'hi' ? 'पौधे की पत्तियों की फोटो अपलोड करके बीमारियों की तुरंत पहचान करें।' : language === 'pa' ? 'ਪੌਦੇ ਦੇ ਪੱਤਿਆਂ ਦੀ ਫੋਟੋ ਅਪਲੋਡ ਕਰਕੇ ਬਿਮਾਰੀਆਂ ਦੀ ਤੁਰੰਤ ਪਛਾਣ ਕਰੋ।' : 'Upload a leaf photo to identify crop diseases instantly.' },
+    { label: t('nav.cropGuide'), query: 'How does crop recommendation work?', desc: language === 'hi' ? 'अपनी मिट्टी (N-P-K) के आधार पर AI से फसल उगाने के सुझाव पाएं।' : language === 'pa' ? 'ਆਪਣੀ ਮਿੱਟੀ (N-P-K) ਦੇ ਅਧਾਰ ਤੇ AI ਤੋਂ ਫਸਲ ਉਗਾਉਣ ਦੇ ਸੁਝਾਅ ਪ੍ਰਾਪਤ ਕਰੋ।' : 'Get AI-based crop suggestions based on your soil data (N-P-K).' },
+    { label: language === 'hi' ? 'मौसम की जानकारी' : language === 'pa' ? 'ਮੌਸਮ ਦੀ ਜਾਣਕਾਰੀ' : 'Weather Info', query: 'Show me my local weather forecast.', desc: language === 'hi' ? 'बेहतर खेती के लिए अपने इलाके के मौसम की जानकारी देखें।' : language === 'pa' ? 'ਬਿਹਤਰ ਖੇਤੀ ਲਈ ਆਪਣੇ ਇਲਾਕੇ ਦੇ ਮੌਸਮ ਦੀ ਜਾਣਕਾਰੀ ਦੇਖੋ।' : 'Check hyper-local weather data for better farm planning.' },
+    { label: language === 'hi' ? 'मिट्टी का स्वास्थ्य' : language === 'pa' ? 'ਮਿੱਟੀ ਦੀ ਸਿਹਤ' : 'Soil Health', query: 'How to improve soil health?', desc: language === 'hi' ? 'अपनी मिट्टी की उपजाऊ शक्ति बढ़ाने के तरीके सीखें।' : language === 'pa' ? 'ਆਪਣੀ ਮਿੱਟੀ ਦੀ ਉਪਜਾਊ ਸ਼ਕਤੀ ਵਧਾਉਣ ਦੇ ਤਰੀਕੇ ਸਿੱਖੋ।' : 'Learn tips to maintain and improve your soil fertility.' }
   ];
 
   const messagesWrapperRef = useRef(null);
@@ -204,11 +207,15 @@ const ChatbotModule = ({ fullPage = false }) => {
 
       recognitionRef.current.onstart = () => {
         setIsListening(true);
+        isListeningRef.current = true;
         setTranscript('');
         console.log("Speech recognition started");
       };
       
-      recognitionRef.current.onend = () => setIsListening(false);
+      recognitionRef.current.onend = () => {
+        setIsListening(false);
+        isListeningRef.current = false;
+      };
       
       recognitionRef.current.onresult = (event) => {
         let interimTranscript = '';
@@ -224,9 +231,8 @@ const ChatbotModule = ({ fullPage = false }) => {
 
         const currentText = (finalTranscript || interimTranscript).replace(/\.+$/, '').trim();
         
-        // Filter out junk characters like "伦" which can appear due to browser/driver bugs
+        // Filter out junk characters
         if (currentText.includes('伦') || currentText.length > 50 && /^[\u4e00-\u9fa5\s]+$/.test(currentText)) {
-          console.warn("Junk transcript detected, ignoring:", currentText);
           return;
         }
 
@@ -234,19 +240,24 @@ const ChatbotModule = ({ fullPage = false }) => {
         transcriptRef.current = currentText;
 
         // Reset silence timer on every speech result
-        if (silenceTimeout) clearTimeout(silenceTimeout);
+        if (silenceTimeoutRef.current) clearTimeout(silenceTimeoutRef.current);
         
-        // snappier 2.5s silence detection instead of 5s
-        const timeout = setTimeout(() => {
-          if (currentText.trim()) {
+        // Use 5s silence detection as requested
+        silenceTimeoutRef.current = setTimeout(() => {
+          if (transcriptRef.current.trim()) {
             console.log("Silence detected, stopping recording...");
-            stopRecording();
-            // Close modal immediately for faster feel
+            // Use a version of stopRecording that doesn't rely on stale closures
+            // or just call the logic directly here
+            if (mediaRecorderRef.current && isRecordingRef.current) {
+              mediaRecorderRef.current.stop();
+              setIsRecording(false);
+              isRecordingRef.current = false;
+            } else if (recognitionRef.current && isListeningRef.current) {
+              recognitionRef.current.stop();
+            }
             setIsMicModalOpen(false);
           }
-        }, 2500); 
-        
-        setSilenceTimeout(timeout);
+        }, 5000); 
       };
       
       recognitionRef.current.onerror = (error) => {
@@ -268,7 +279,7 @@ const ChatbotModule = ({ fullPage = false }) => {
       }
       window.speechSynthesis.cancel();
     };
-  }, []);
+  }, [language]);
 
   useEffect(() => {
     scrollToBottom();
@@ -332,17 +343,17 @@ const ChatbotModule = ({ fullPage = false }) => {
 
       mediaRecorderRef.current.onstop = () => {
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/wav' });
-        // Use latest transcript from ref for immediate UI feedback
         const userQuery = transcriptRef.current;
+        
+        // Prioritize the frontend transcript as it's more accurate
         if (userQuery.trim()) {
-          setMessages(prev => [...prev, {
-            id: Date.now(),
-            html: userQuery,
-            sender: 'user',
-            timestamp: new Date()
-          }]);
+          console.log("Using frontend transcript for query:", userQuery);
+          handleSendMessage(userQuery);
+        } else {
+          console.log("No transcript available, falling back to voice upload");
+          handleVoiceUpload(audioBlob);
         }
-        handleVoiceUpload(audioBlob, userQuery);
+        
         stream.getTracks().forEach(track => track.stop());
       };
 
@@ -357,6 +368,7 @@ const ChatbotModule = ({ fullPage = false }) => {
 
       mediaRecorderRef.current.start();
       setIsRecording(true);
+      isRecordingRef.current = true;
       setIsMicModalOpen(true);
     } catch (err) {
       console.error("Error accessing microphone:", err);
@@ -371,10 +383,11 @@ const ChatbotModule = ({ fullPage = false }) => {
   };
 
   const stopRecording = () => {
-    if (mediaRecorderRef.current && isRecording) {
+    if (mediaRecorderRef.current && isRecordingRef.current) {
       mediaRecorderRef.current.stop();
       setIsRecording(false);
-    } else if (recognitionRef.current && isListening) {
+      isRecordingRef.current = false;
+    } else if (recognitionRef.current && isListeningRef.current) {
       recognitionRef.current.stop();
       setIsMicModalOpen(false);
     }
@@ -605,14 +618,15 @@ const ChatbotModule = ({ fullPage = false }) => {
     setIsSpeakerModalOpen(true);
 
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'hi-IN';
+    const langCode = language === 'hi' ? 'hi-IN' : language === 'pa' ? 'pa-IN' : 'en-IN';
+    utterance.lang = langCode;
     utterance.rate = 0.9;
     utterance.pitch = 1;
 
     const setVoice = () => {
       const voices = window.speechSynthesis.getVoices();
-      const hindiVoice = voices.find(v => v.lang === 'hi-IN');
-      if (hindiVoice) utterance.voice = hindiVoice;
+      const voice = voices.find(v => v.lang === langCode);
+      if (voice) utterance.voice = voice;
       window.speechSynthesis.speak(utterance);
     };
 
@@ -736,26 +750,26 @@ const ChatbotModule = ({ fullPage = false }) => {
         {/* Chat Messages */}
         <main className="chat-container">
           {showQuickActions && (
-            <div className="absolute inset-0 bg-white/95 z-20 p-6 animate-fade-in overflow-y-auto">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="font-black text-slate-800 uppercase tracking-wider text-sm">Common Tasks</h3>
+            <div className="absolute inset-0 bg-white/95 z-20 p-8 animate-fade-in overflow-y-auto">
+              <div className="flex justify-between items-center mb-8 pt-4">
+                <h3 className="font-black text-slate-800 uppercase tracking-wider text-sm border-b-2 border-emerald-500 pb-1">Common Tasks</h3>
                 <button onClick={() => setShowQuickActions(false)} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
                   <X size={18} className="text-slate-400" />
                 </button>
               </div>
-              <div className="grid gap-4">
+              <div className="grid gap-6 p-5">
                 {quickActions.map((action, index) => (
                   <button
                     key={index}
                     onClick={() => handleQuickAction(action)}
-                    className="text-left p-4 rounded-2xl border border-slate-100 hover:border-emerald-200 hover:bg-emerald-50 transition-all group relative overflow-hidden"
+                    className="text-left p-6 rounded-2xl border border-slate-100 hover:border-emerald-200 hover:bg-emerald-50 transition-all group relative overflow-hidden shadow-sm hover:shadow-md"
                   >
                     <div className="relative z-10">
-                      <p className="font-bold text-slate-800 group-hover:text-emerald-700 mb-1">{action.label}</p>
+                      <p className="font-bold text-slate-800 group-hover:text-emerald-700 mb-2">{action.label}</p>
                       <p className="text-xs text-slate-500 font-medium leading-relaxed">{action.desc}</p>
                     </div>
-                    <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <ChevronRight size={16} className="text-emerald-500" />
+                    <div className="absolute right-6 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <ChevronRight size={20} className="text-emerald-500" />
                     </div>
                   </button>
                 ))}
@@ -925,11 +939,11 @@ const ChatbotModule = ({ fullPage = false }) => {
 
             <div 
               ref={speakerTextRef}
-              className="relative z-10 max-w-5xl mx-auto h-[60vh] overflow-y-auto custom-scrollbar-none py-[25vh] space-y-10"
+              className="relative z-10 max-w-4xl mx-auto h-[50vh] overflow-y-auto custom-scrollbar-none py-[20vh] space-y-8"
               style={{ scrollBehavior: 'smooth' }}
             >
               <p 
-                className="text-white text-4xl md:text-6xl lg:text-7xl font-black leading-tight tracking-tight drop-shadow-[0_10px_30px_rgba(0,0,0,0.8)]"
+                className="text-white text-2xl md:text-4xl lg:text-5xl font-black leading-tight tracking-tight drop-shadow-[0_10px_30px_rgba(0,0,0,0.8)]"
                 style={{
                   textShadow: '0 0 20px rgba(59, 130, 246, 0.4), 0 0 40px rgba(59, 130, 246, 0.1)'
                 }}

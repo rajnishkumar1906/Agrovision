@@ -39,7 +39,7 @@ const Sidebar = ({ activeTab, setActiveTab, onLogout }) => {
 
   return (
     <>
-      <aside className={`hidden md:flex flex-col relative border-r border-white/5 h-full flex-shrink-0 transition-all duration-500 shadow-2xl overflow-hidden group/sidebar ${isCollapsed ? 'w-24' : 'w-72 lg:w-80'}`}>
+      <aside className={`hidden md:flex flex-col relative border-r border-white/5 h-full flex-shrink-0 transition-all duration-500 shadow-2xl overflow-hidden group/sidebar ${isCollapsed ? 'w-[115px]' : 'w-[345px] lg:w-[384px]'}`}>
         {/* Background Image with Enhanced Transparency */}
         <div className="absolute inset-0 z-0">
           <img 

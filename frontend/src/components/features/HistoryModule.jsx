@@ -132,101 +132,118 @@ const HistoryModule = () => {
   };
 
   return (
-    <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm h-full overflow-hidden flex flex-col">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-        <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
-          <History className="w-5 h-5 text-indigo-500" />
-          {t('nav.history')}
-        </h3>
+    <div className="relative rounded-[3rem] overflow-hidden shadow-2xl h-full group border border-white/20 transition-all duration-700">
+      {/* Background Layer with Image */}
+      <div className="absolute inset-0 z-0">
+        <img
+          src="/disease_detection_bg.png"
+          alt="History Background"
+          className="w-full h-full object-cover transition-transform duration-[2000ms] group-hover:scale-105 opacity-80"
+          onError={(e) => {
+            e.target.onerror = null;
+            e.target.src = 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1200&q=80';
+          }}
+        />
 
-        <div className="flex flex-wrap items-center gap-2">
-          {/* Search Bar */}
-          <div className="relative group">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
-            <input
-              type="text"
-              placeholder="Search history..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-9 pr-4 py-2 bg-slate-50 border border-slate-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all w-full md:w-48"
-            />
-            {searchTerm && (
-              <button 
-                onClick={() => setSearchTerm('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 p-0.5 hover:bg-slate-200 rounded-full text-slate-400 transition-colors"
-              >
-                <X size={12} />
-              </button>
-            )}
+        {/* Overlays for better text visibility */}
+        <div className="absolute inset-0 bg-gradient-to-b from-white/60 via-white/40 to-white/70"></div>
+        <div className="absolute inset-0 bg-emerald-900/5 backdrop-blur-[1px]"></div>
+      </div>
+
+      <div className="relative z-10 p-6 md:p-8 h-full flex flex-col custom-scrollbar-none overflow-y-auto">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 bg-white/80 backdrop-blur-xl p-5 rounded-[2rem] border border-white/40 shadow-xl">
+          <div>
+            <h3 className="text-2xl font-black text-slate-800 flex items-center gap-3 mb-1 tracking-tight">
+              <div className="p-3 bg-indigo-50 rounded-2xl border border-indigo-200 group-hover:rotate-12 transition-transform duration-500 shadow-sm">
+                <History className="w-6 h-6 text-indigo-600" />
+              </div>
+              {t('nav.history')}
+            </h3>
+            <p className="text-slate-500 font-bold text-sm ml-1">Archive of your agricultural activity</p>
           </div>
 
-          {/* Filter Dropdown */}
-          <div className="relative group">
-            <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-emerald-500 transition-colors" />
-            <select
-              value={filterAction}
-              onChange={(e) => setFilterAction(e.target.value)}
-              className="pl-9 pr-8 py-2 bg-slate-50 border border-slate-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all appearance-none cursor-pointer text-slate-600 font-medium"
-            >
-              <option value="ALL">All Categories</option>
-              <option value="DISEASE_DETECTION">Disease Detection</option>
-              <option value="CROP_RECOMMENDATION">Crop Recommendation</option>
-              <option value="CHATBOT_QUERY">KrishiBot</option>
-            </select>
+          <div className="flex flex-wrap items-center gap-3">
+            {/* Search Bar */}
+            <div className="relative group/search">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within/search:text-indigo-500 transition-colors" />
+              <input
+                type="text"
+                placeholder="Search history..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-11 pr-10 py-3 bg-white/60 border border-slate-200 rounded-2xl text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-indigo-400 focus:bg-white transition-all w-full md:w-48 backdrop-blur-md"
+              />
+              {searchTerm && (
+                <button 
+                  onClick={() => setSearchTerm('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-slate-200 rounded-full text-slate-400 transition-colors"
+                >
+                  <X size={12} />
+                </button>
+              )}
+            </div>
+
+            {/* Filter */}
+            <div className="relative group/filter">
+              <Filter className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within/filter:text-emerald-500 transition-colors" />
+              <select
+                value={filterAction}
+                onChange={(e) => setFilterAction(e.target.value)}
+                className="pl-11 pr-10 py-3 bg-white/60 border border-slate-200 rounded-2xl text-sm text-slate-600 focus:outline-none focus:border-emerald-400 focus:bg-white transition-all appearance-none cursor-pointer font-bold backdrop-blur-md"
+              >
+                <option value="ALL">All Categories</option>
+                <option value="DISEASE_DETECTION">Disease Detection</option>
+                <option value="CROP_RECOMMENDATION">Crop Recommendation</option>
+                <option value="CHATBOT_QUERY">KrishiBot</option>
+              </select>
+            </div>
           </div>
         </div>
-      </div>
-      
-      <div className="flex-1 overflow-y-auto space-y-4 pr-2 custom-scrollbar">
-        {loading ? (
-          <div className="flex flex-col items-center justify-center py-20 gap-3">
-            <div className="w-8 h-8 border-4 border-indigo-500/20 border-t-indigo-500 rounded-full animate-spin"></div>
-            <p className="text-sm text-slate-400 font-medium">Searching history...</p>
-          </div>
-        ) : history.length === 0 ? (
-          <div className="text-center py-16 px-4">
-            <div className="bg-slate-50 w-16 h-16 rounded-3xl flex items-center justify-center mx-auto mb-4">
-              <Search className="w-8 h-8 text-slate-200" />
+        
+        <div className="flex-1 overflow-y-auto space-y-4 pr-2 custom-scrollbar-none relative z-10">
+          {loading ? (
+            <div className="flex flex-col items-center justify-center py-20 gap-3">
+              <div className="w-8 h-8 border-4 border-indigo-500/20 border-t-indigo-500 rounded-full animate-spin"></div>
+              <p className="text-sm text-slate-500 font-black uppercase tracking-widest">Searching history...</p>
             </div>
-            <p className="text-slate-500 font-bold mb-1">No results found</p>
-            <p className="text-slate-400 text-sm">Try adjusting your search or filters</p>
-            {(searchTerm || filterAction !== 'ALL') && (
-              <button 
-                onClick={() => { setSearchTerm(''); setFilterAction('ALL'); }}
-                className="mt-4 text-indigo-500 text-sm font-bold hover:underline"
-              >
-                Clear all filters
-              </button>
-            )}
-          </div>
-        ) : (
-          history.map((item) => (
-            <div key={item._id} className="p-5 bg-white border border-slate-100 rounded-[2.5rem] hover:shadow-xl hover:shadow-slate-100 transition-all group animate-fade-in relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-24 h-24 bg-slate-50 rounded-full -mr-12 -mt-12 group-hover:scale-150 transition-transform duration-700"></div>
-              
-              <div className="flex flex-col md:flex-row gap-4 relative z-10">
-                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center bg-slate-50 border border-slate-100 shadow-sm group-hover:scale-110 transition-transform`}>
-                  {getIcon(item.action)}
-                </div>
+          ) : history.length === 0 ? (
+            <div className="text-center py-24 px-8 bg-white/70 backdrop-blur-xl rounded-[3rem] border border-white/40 shadow-xl">
+              <div className="bg-slate-50 w-20 h-20 rounded-[2rem] flex items-center justify-center mx-auto mb-6 border border-slate-200 shadow-sm">
+                <Search className="w-10 h-10 text-slate-300" />
+              </div>
+              <p className="text-slate-700 font-black text-xl mb-2">No results found</p>
+              <p className="text-slate-400 font-bold text-sm">Try adjusting your search or filters</p>
+            </div>
+          ) : (
+            history.map((item) => (
+              <div key={item._id} className="group/item bg-white/80 backdrop-blur-xl rounded-[2.5rem] p-6 border border-white/40 shadow-lg hover:bg-white/95 transition-all duration-500 animate-fade-in relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-slate-50/50 rounded-full -mr-16 -mt-16 group-hover/item:scale-150 transition-transform duration-1000"></div>
                 
-                <div className="flex-1">
-                  <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
-                    <div className="flex items-center gap-2">
-                      <span className={`px-3 py-1 rounded-full text-[10px] font-bold border ${getBadgeStyle(item.action)}`}>
-                        {getBadgeLabel(item.action)}
-                      </span>
-                      <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{new Date(item.timestamp).toLocaleDateString()}</span>
-                    </div>
+                <div className="flex flex-col md:flex-row gap-6 relative z-10">
+                  <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-sm transition-all duration-500 group-hover/item:rotate-6 bg-white border border-slate-100`}>
+                    {getIcon(item.action)}
                   </div>
                   
-                  <div className="text-slate-700 font-bold text-base leading-relaxed">
-                    {getDisplayText(item)}
+                  <div className="flex-1">
+                    <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+                      <div className="flex items-center gap-3">
+                        <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] border shadow-sm ${getBadgeStyle(item.action)}`}>
+                          {getBadgeLabel(item.action)}
+                        </span>
+                        <span className="text-[10px] text-slate-400 font-black uppercase tracking-widest">{new Date(item.timestamp).toLocaleDateString()}</span>
+                      </div>
+                    </div>
+                    
+                    <div className="text-slate-700 font-bold text-lg leading-relaxed drop-shadow-sm">
+                      {getDisplayText(item)}
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ))
-        )}
+            ))
+          )}
+        </div>
       </div>
     </div>
   );

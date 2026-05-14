@@ -16,6 +16,16 @@ class QueryClassifier:
                 ],
                 "tone": "Warm, welcoming, and very respectful."
             },
+            "casual_humor": {
+                "examples": [
+                    "kaise ho beta", "aur kya haal hai", "shadi kab hai", "joke sunao",
+                    "tum bahut acche ho", "ek kahani sunao", "nacho", "gaana gao",
+                    "krishibot tum kaise ho beta", "party kab hai", "paisa de do",
+                    "tum bimar ho kya", "kya khaoge", "chai pioge", "mujhse dosti karoge",
+                    "tumhari girlfriend hai?", "kitne saal ke ho", "mummy kahan hai"
+                ],
+                "tone": "Witty, funny, and slightly mischievous. Use rural humor, friendly banter, and a 'son-like' playful attitude."
+            },
             "market_info": {
                 "examples": [
                     "mandi price", "msp of wheat", "paddy rate", "enam registration",
