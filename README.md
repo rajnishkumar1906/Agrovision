@@ -1,6 +1,6 @@
 # 🌾 AgroVision - AI-Powered Agricultural Platform
 
-AgroVision is a **microservices-based** web platform for farmers and agri-advisors. It combines **machine-learning crop tools**, a **multilingual dashboard**, and **KrishiBot**—an AI assistant with text and **Whisper-powered voice**—to help with soil-based planning, plant disease diagnosis, and everyday farming questions.
+AgroVision is a **microservices-based** web platform for farmers and agri-advisors. It combines **machine-learning crop tools** (including **EfficientNetB0 transfer learning** for leaf disease detection), a **multilingual dashboard**, and **KrishiBot**—an AI assistant with text and **Whisper-powered voice**—to help with soil-based planning, plant disease diagnosis, and everyday farming questions.
 
 ---
 
@@ -29,7 +29,7 @@ AgroVision is a **microservices-based** web platform for farmers and agri-adviso
 | Feature | Description |
 |---------|-------------|
 | **Crop recommendation** | ML model suggests suitable crops from N, P, K, pH, temperature, humidity, and rainfall—or fetches weather from GPS coordinates. |
-| **Disease detection** | Upload a leaf photo; **EfficientNetB0** classifies among **38** crop/disease labels with confidence score and Hindi/Punjabi names. |
+| **Disease detection** | Upload a leaf photo; **EfficientNetB0 + transfer learning** (ImageNet backbone, custom head) classifies **38** crop/disease labels with confidence and Hindi/Punjabi names. |
 | **KrishiBot** | RAG + **Gemini** chatbot; **OpenAI Whisper** (STT) + **gTTS** (TTS) for voice; quick actions and in-app tool guidance. |
 | **Multilingual UI** | English, Hindi, and Punjabi across dashboard, results, and chat. |
 | **History** | Gateway logs recommendations, scans, and chat sessions per user (MongoDB). |
@@ -82,7 +82,7 @@ flowchart LR
 | **API Gateway** | Node.js, Express, Multer (uploads), JWT middleware |
 | **Auth / History** | Node.js, Express, MongoDB |
 | **Crop recommendation** | Python 3.11, FastAPI, scikit-learn, pickle models |
-| **Disease detection** | Python 3.11, FastAPI, TensorFlow/Keras, EfficientNetB0 |
+| **Disease detection** | Python 3.11, FastAPI, TensorFlow/Keras, **EfficientNetB0** (ImageNet transfer learning) |
 | **KrishiBot** | FastAPI, LangChain, FAISS, HuggingFace embeddings, Google Gemini, **OpenAI Whisper** (HuggingFace `transformers`), gTTS |
 | **Infrastructure** | Docker Compose, optional Redis (gateway caching) |
 
@@ -168,7 +168,34 @@ Base URL: `http://localhost:3000` (Docker) or `http://localhost:5001` (local gat
 
 ## 🔬 Disease detection
 
-The **disease-detection** microservice identifies plant health from **RGB leaf images** using a trained **EfficientNetB0** classifier (transfer learning on ImageNet, custom head for 38 classes).
+The **disease-detection** microservice identifies plant health from **RGB leaf images** using a deep-learning model built with **transfer learning**: a pretrained **EfficientNetB0** backbone (ImageNet) plus a custom classification head trained on plant-disease data.
+
+### ML model: EfficientNetB0 + transfer learning
+
+Instead of training a CNN from scratch, AgroVision **reuses ImageNet features** and fine-tunes for agriculture:
+
+| Stage | What happens |
+|-------|----------------|
+| **1. Backbone** | `tf.keras.applications.EfficientNetB0(weights="imagenet", include_top=False)` — convolutional layers pretrained on ImageNet |
+| **2. Freeze base** | Backbone set `trainable = False` during initial training so low-level edges/textures stay stable |
+| **3. Custom head** | `GlobalAveragePooling2D` → `Dense(256, relu)` → `Dense(38, softmax)` — new layers learn crop/disease-specific patterns |
+| **4. Fine-tune** | (Notebook) Unfreeze top layers and train on the PlantVillage-style dataset with augmentation |
+| **5. Deploy** | Saved weights in `models/model.weights.h5`; inference rebuilds the same architecture in `disease_model.py` |
+
+**Architecture (inference / serving):**
+
+```text
+Input (224×224×3 RGB)
+  → EfficientNet preprocess_input
+  → EfficientNetB0 backbone (ImageNet weights, frozen at inference)
+  → GlobalAveragePooling2D
+  → Dense(256, ReLU)
+  → Dense(38, Softmax)  →  crop + disease class + confidence
+```
+
+**Why transfer learning?** Plant leaf datasets are smaller than ImageNet; starting from a strong visual backbone improves accuracy and trains faster than a random initialization.
+
+Training & evaluation: `agri-microservice/disease-detection/notebook/Final_Plant_Disease_Detection.ipynb`.
 
 ### How it works
 
@@ -202,8 +229,6 @@ Full list: `GET http://localhost:8002/classes` or see `app/models/disease_model.
 | `models/plant-disease-detection.h5` | Optional full saved Keras model |
 | `MODEL_PATH` env | Override path |
 | `IMG_SIZE` env | Default `224` |
-
-Training notebook: `agri-microservice/disease-detection/notebook/Final_Plant_Disease_Detection.ipynb`.
 
 ### Response fields
 
@@ -491,7 +516,8 @@ IMG_SIZE=224
 
 ## 🙏 Acknowledgments
 
-- **PlantVillage**-style dataset & training workflow (disease notebook)
+- **PlantVillage**-style dataset & **EfficientNetB0 transfer learning** training workflow (disease notebook)
+- **TensorFlow/Keras EfficientNet** — ImageNet pretrained backbone
 - **Google Gemini** — KrishiBot LLM
 - **OpenAI Whisper** — speech-to-text for KrishiBot voice queries
 - **HuggingFace** — Whisper + sentence-transformer embeddings for RAG
